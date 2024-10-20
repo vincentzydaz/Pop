@@ -1,57 +1,56 @@
-const axios = require('axios');
+const axios = require("axios");
 
 module.exports = {
-  name: 'lyrics',
-  description: 'Fetch song lyrics',
-  author: 'Deku (rest api)',
+  name: "lyrics",
+  description: "Get song lyrics by title",
+  author: "chilli",
+
   async execute(senderId, args, pageAccessToken, sendMessage) {
-    const query = args.join(' ');
+    const songTitle = args.join(" ");
+
+    if (!songTitle) {
+      return sendMessage(senderId, {
+        text: `Usage: lyrics [song title]`
+      }, pageAccessToken);
+    }
+
     try {
-      const apiUrl = `https://deku-rest-apis.ooguy.com/search/lyrics?q=${encodeURIComponent(query)}`;
-      const response = await axios.get(apiUrl);
-      const result = response.data.result;
+      const res = await axios.get(`https://markdevs69v2-679r.onrender.com/api/lyrics/song`, {
+        params: { title: songTitle }
+      });
 
-      if (result && result.lyrics) {
-        const lyricsMessage = `Title: ${result.title}\nArtist: ${result.artist}\n\n${result.lyrics}`;
-
-        // Split the lyrics message into chunks if it exceeds 2000 characters
-        const maxMessageLength = 2000;
-        if (lyricsMessage.length > maxMessageLength) {
-          const messages = splitMessageIntoChunks(lyricsMessage, maxMessageLength);
-          for (const message of messages) {
-            sendMessage(senderId, { text: message }, pageAccessToken);
-          }
-        } else {
-          sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
-        }
-
-        // Optionally send an image if available
-        if (result.image) {
-          sendMessage(senderId, {
-            attachment: {
-              type: 'image',
-              payload: {
-                url: result.image,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        }
-      } else {
-        console.error('Error: No lyrics found in the response.');
-        sendMessage(senderId, { text: 'Sorry, no lyrics were found for your query.' }, pageAccessToken);
+      if (!res || !res.data || !res.data.content) {
+        throw new Error("No lyrics found for this song.");
       }
+
+      const { title, artist, lyrics, url, song_thumbnail } = res.data.content;
+
+      const maxLyricsLength = 2000;
+      let trimmedLyrics = lyrics;
+      if (lyrics.length > maxLyricsLength) {
+        trimmedLyrics = lyrics.substring(0, maxLyricsLength) + "...";
+      }
+
+      const lyricsMessage = `🎵 *${title}* by *${artist}*\n\n${trimmedLyrics}\n\n🔗 Read more: ${url}`;
+      await sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
+
+      // Send song thumbnail if available
+      if (song_thumbnail) {
+        await sendMessage(senderId, {
+          attachment: {
+            type: "image",
+            payload: {
+              url: song_thumbnail
+            }
+          }
+        }, pageAccessToken);
+      }
+
     } catch (error) {
-      console.error('Error calling Lyrics API:', error);
-      sendMessage(senderId, { text: 'Sorry, there was an error processing your request.' }, pageAccessToken);
+      console.error("Error retrieving lyrics:", error);
+      sendMessage(senderId, {
+        text: `Error retrieving lyrics. Please try again or check your input.`
+      }, pageAccessToken);
     }
   }
 };
-
-function splitMessageIntoChunks(message, chunkSize) {
-  const chunks = [];
-  for (let i = 0; i < message.length; i += chunkSize) {
-    chunks.push(message.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
