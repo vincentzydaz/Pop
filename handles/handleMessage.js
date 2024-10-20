@@ -3,7 +3,7 @@ const path = require('path');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const prefix = '-';
+const prefix = '';
 
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
