@@ -7,17 +7,17 @@ module.exports = {
   author: 'Chilli',
 
   async execute(senderId, args, pageAccessToken) {
-    if (!args || !Array.isArray(args) || args.length === 0) {
+    if (!args || args.length === 0) {
       await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
       return;
     }
 
-    const prompt = args.join(' '); // Combine the arguments into a full prompt with spaces
+    const prompt = args.join(' '); // Ensure all arguments are joined with spaces
 
     try {
       await sendMessage(senderId, { text: 'Generating image, please wait...' }, pageAccessToken);
 
-      // Make sure the prompt is properly encoded to handle spaces and special characters
+      // Encode the prompt to handle any special characters and spaces
       const apiUrl = `https://ccprojectapis.ddns.net/api/imgen?prompt=${encodeURIComponent(prompt)}`;
 
       await sendMessage(senderId, { 
