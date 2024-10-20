@@ -3,6 +3,7 @@ const axios = require("axios");
 module.exports = {
   name: "spotify",
   description: "Search for a Spotify track using a keyword",
+  author: "churchill",
 
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const searchQuery = args.join(" ");
