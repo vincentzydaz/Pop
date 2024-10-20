@@ -8,7 +8,7 @@ module.exports = {
   async execute(senderId, args, pageAccessToken, sendMessage) {
     const prompt = args.join(" ");
     if (!prompt) {
-      return sendMessage(senderId, { text: `Usage: gpt4 [your question]` }, pageAccessToken);
+      return sendMessage(senderId, { text: `Usage: ai [your question]` }, pageAccessToken);
     }
 
     sendMessage(senderId, { text: "Processing your request..." }, pageAccessToken);
