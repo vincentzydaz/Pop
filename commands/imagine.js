@@ -6,38 +6,31 @@ module.exports = {
   description: 'Generates an image based on the provided prompt.',
   author: 'Chilli',
 
-  async execute(chilli, args, pogi) {
+  async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(chilli, { text: 'Please provide a prompt for image generation. ex: imagine cat with a wing' }, pogi);
+      await sendMessage(senderId, { text: 'Please provide a prompt for image generation. ex: imagine a cat' }, pageAccessToken);
       return;
     }
 
     const prompt = args.join(' ');
 
     try {
-      await sendMessage(chilli, { text: 'Generating image, please wait...' }, pogi);
+      await sendMessage(senderId, { text: 'Generating image, please wait...' }, pageAccessToken);
 
       const apiUrl = `https://ccprojectapis.ddns.net/api/imgen?prompt=${encodeURIComponent(prompt)}`;
-      const response = await axios.get(apiUrl);
 
-      if (!response.data || !response.data.url) {
-        throw new Error('No image URL found in the API response');
-      }
-
-      const imageUrl = response.data.url;
-
-      await sendMessage(chilli, { 
+      await sendMessage(senderId, { 
         attachment: { 
           type: 'image', 
           payload: { 
-            url: imageUrl 
+            url: apiUrl 
           } 
         } 
-      }, pogi);
+      }, pageAccessToken);
 
     } catch (error) {
       console.error('Error generating the image:', error);
-      await sendMessage(chilli, { text: 'Error: Could not generate image. Please try again later.' }, pogi);
+      await sendMessage(senderId, { text: 'Error: Could not generate image. Please try again later.' }, pageAccessToken);
     }
   }
 };
