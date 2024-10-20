@@ -8,15 +8,16 @@ module.exports = {
 
   async execute(senderId, args, pageAccessToken) {
     if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Please provide a prompt for image generation. ex: imagine a cat' }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Please provide a prompt for image generation.' }, pageAccessToken);
       return;
     }
 
-    const prompt = args.join(' ');
+    const prompt = args.join(' '); // Combine the arguments into a full prompt with spaces
 
     try {
       await sendMessage(senderId, { text: 'Generating image, please wait...' }, pageAccessToken);
 
+      // Make sure the prompt is properly encoded to handle spaces and special characters
       const apiUrl = `https://ccprojectapis.ddns.net/api/imgen?prompt=${encodeURIComponent(prompt)}`;
 
       await sendMessage(senderId, { 
