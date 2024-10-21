@@ -24,7 +24,7 @@ module.exports = {
 
       const formattedResponse = 
 `💬 | 𝘼𝙨𝙝𝙡𝙚𝙮'𝙨 𝙍𝙚𝙥𝙡𝙮
-━━━━━━━━━━━━━━
+
 ${ashleyResponse}`;
 
       await sendMessage(senderId, { text: formattedResponse }, pageAccessToken);
