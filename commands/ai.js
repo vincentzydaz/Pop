@@ -23,7 +23,7 @@ module.exports = {
 
     } catch (error) {
       console.error("Error while processing your request:", error);
-      sendMessage(senderId, { text: "Error while processing your request. Please try again." }, pageAccessToken);
+      sendMessage(senderId, { text: "Error while processing your request. Please try again or use gpt4." }, pageAccessToken);
     }
   }
 };
