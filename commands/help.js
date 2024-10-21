@@ -15,9 +15,27 @@ module.exports = {
     });
 
     const totalCommands = commandFiles.length;
-    
-    const helpMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\n${commands.join('\n\n')}\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
-    
-    sendMessage(senderId, { text: helpMessage }, pageAccessToken);
+
+    const helpMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\nIf you have any problems with the pagebot, contact the developer.`;
+
+    const buttons = [
+      {
+        type: 'web_url',
+        url: 'https://www.facebook.com/Churchill.Dev4100',
+        title: 'Contact Developer'
+      }
+    ];
+
+    // Send the message with one button
+    sendMessage(senderId, {
+      attachment: {
+        type: 'template',
+        payload: {
+          template_type: 'button',
+          text: helpMessage,
+          buttons: buttons
+        }
+      }
+    }, pageAccessToken);
   }
 };
