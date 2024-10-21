@@ -22,14 +22,10 @@ module.exports = {
       const response = await axios.get(apiUrl);
       const ashleyResponse = response.data.result || 'No response from Ashley.';
 
-      const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
       const formattedResponse = 
 `💬 | 𝘼𝙨𝙝𝙡𝙚𝙮'𝙨 𝙍𝙚𝙥𝙡𝙮
-━━━━━━━━━━━━━━━━━━
-${ashleyResponse}
-━━━━━━━━━━━━━━━━━━
-⏰ Response time: ${currentTime}`;
+━━━━━━━━━━━━━━
+${ashleyResponse}`;
 
       await sendMessage(senderId, { text: formattedResponse }, pageAccessToken);
 
