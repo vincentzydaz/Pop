@@ -23,13 +23,21 @@ module.exports = {
     sendMessage(senderId, { text: `Sending ${total} messages to ${username}...` }, pageAccessToken);
 
     try {
+      // Perform the API request
       const response = await axios.get("https://markdevs69v2-679r.onrender.com/api/other/nglspam", {
         params: { username, message, total }
       });
 
-      const result = response.data.result;
-      sendMessage(senderId, { text: result }, pageAccessToken);
+      // Check the response status and data
+      if (response.data && response.data.status === true) {
+        const result = response.data.result;
+        sendMessage(senderId, { text: result }, pageAccessToken);
+      } else {
+        sendMessage(senderId, { text: "Failed to send messages. Please check the details and try again." }, pageAccessToken);
+      }
     } catch (error) {
+      // Provide more information about the error
+      console.error("Error in NGL Spam command:", error);
       sendMessage(senderId, { text: "An error occurred while sending the messages. Please try again." }, pageAccessToken);
     }
   }
