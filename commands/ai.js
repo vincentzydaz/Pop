@@ -14,7 +14,7 @@ module.exports = {
     sendMessage(senderId, { text: "Processing your request..." }, pageAccessToken);
 
     try {
-      const response = await axios.get("https://ccprojectapis.ddns.net/api/gpt4o-v2", {
+      const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o-v2", {
         params: { prompt: prompt }
       });
 
