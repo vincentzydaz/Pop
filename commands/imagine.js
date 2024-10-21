@@ -15,7 +15,7 @@ module.exports = {
     const prompt = args.join(' ');
 
     try {
-      const apiUrl = `https://ccprojectsjonellapis-production.up.railway.app/api/generate-art?prompt=${encodeURIComponent(prompt)}`;
+      const apiUrl = `https://appjonellccapis.zapto.org/api/generate-art?prompt=${encodeURIComponent(prompt)}`;
 
       await sendMessage(senderId, { attachment: { type: 'image', payload: { url: apiUrl } } }, pageAccessToken);
 
