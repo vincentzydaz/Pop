@@ -1,52 +1,56 @@
-// /commands/gpt4o.js
-const axios = require('axios');
-const { sendMessage } = require('../handles/sendMessage');
-
-async function sendLongMessage(senderId, text, pageAccessToken, sendMessage) {
-  const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000; // 1 second
-
-  let remainingText = text;
-
-  while (remainingText.length > 0) {
-    const messageChunk = remainingText.slice(0, maxMessageLength);
-    await sendMessage(senderId, { text: messageChunk }, pageAccessToken);
-    remainingText = remainingText.slice(maxMessageLength);
-    
-    if (remainingText.length > 0) {
-      await new Promise(resolve => setTimeout(resolve, delayBetweenMessages));
-    }
-  }
-}
+const axios = require("axios");
 
 module.exports = {
-  name: 'gpt4o',
-  description: 'Send a query to GPT-40 API',
-  usage: '-gpt4o <question>',
-  author: 'isnchurchill',
-  async execute(senderId, args, pageAccessToken) {
-    if (!args || !Array.isArray(args) || args.length === 0) {
-      await sendMessage(senderId, { text: 'Please provide a question for GPT-40.' }, pageAccessToken);
-      return;
+  name: "gpt4o",
+  description: "Interact with GPT-4 using a custom API and receive responses.",
+  author: "Churchill",
+
+  async execute({ senderId, args, pageAccessToken, sendMessage }) {
+    const prompt = args.join(" ");
+    if (!prompt) {
+      return sendMessage(senderId, { text: `Usage: gpt4o [your question]` }, pageAccessToken);
     }
 
-    const question = args.join(' ');
-    const apiUrl = `https://appjonellccapis.zapto.org/api/gpt4o?ask=${encodeURIComponent(question)}&id=1`;
+    sendMessage(senderId, { text: `🔍 Searching...\nQuestion: ${prompt}` }, pageAccessToken);
 
     try {
-      const response = await axios.get(apiUrl);
-      const data = response.data;
+      const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o", {
+        params: {
+          ask: prompt,
+          id: 1
+        }
+      });
 
-      if (data.status && data.response) {
-        const formattedResponse = `💬 |  𝙂𝙋𝙏40\n━━━━━━━━━\n${data.response}\n━━━━━━━━━`;
-
-        await sendLongMessage(senderId, formattedResponse, pageAccessToken, sendMessage);
+      if (response.data.status) {
+        const result = `💬| 𝙂𝙋𝙏𝙊\n\n${response.data.response}`;
+        sendLongMessage(senderId, result, pageAccessToken, sendMessage);
       } else {
-        await sendMessage(senderId, { text: 'Error: Could not retrieve response from GPT-40.' }, pageAccessToken);
+        sendMessage(senderId, { text: "Sorry, something went wrong. Please try again later." }, pageAccessToken);
       }
     } catch (error) {
-      console.error('Error:', error);
-      await sendMessage(senderId, { text: 'Error: Could not communicate with GPT-40.' }, pageAccessToken);
+      sendMessage(senderId, { text: "Error while processing your request. Please try again." }, pageAccessToken);
     }
   }
 };
+
+function sendLongMessage(senderId, text, pageAccessToken, sendMessage) {
+  const maxMessageLength = 2000;
+  const delayBetweenMessages = 1000;
+
+  if (text.length > maxMessageLength) {
+    const messages = splitMessageIntoChunks(text, maxMessageLength);
+
+    sendMessage(senderId, { text: messages[0] }, pageAccessToken);
+
+    messages.slice(1).forEach((message, index) => {
+      setTimeout(() => sendMessage(senderId, { text: message }, pageAccessToken), (index + 1) * delayBetweenMessages);
+    });
+  } else {
+    sendMessage(senderId, { text }, pageAccessToken);
+  }
+}
+
+function splitMessageIntoChunks(message, chunkSize) {
+  const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
+  return message.match(regex);
+}
