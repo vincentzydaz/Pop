@@ -1,11 +1,12 @@
 const axios = require("axios");
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: "ai",
-  description: "Interact with GPT-4 using a custom API and receive responses.",
+  description: "Interact with GPT-4 using a custom API and receive responses, including images.",
   author: "Churchill",
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken) {
     const prompt = args.join(" ");
     if (!prompt) {
       return sendMessage(senderId, { text: `Usage: ai [your question]` }, pageAccessToken);
@@ -19,19 +20,37 @@ module.exports = {
       });
 
       const result = response.data.response;
-      sendLongMessage(senderId, result, pageAccessToken, sendMessage);
+
+      if (result.includes('TOOL_CALL: generateImage')) {
+        const imageUrlMatch = result.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
+        
+        if (imageUrlMatch && imageUrlMatch[1]) {
+          const imageUrl = imageUrlMatch[1];
+
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'image',
+              payload: {
+                url: imageUrl
+              }
+            }
+          }, pageAccessToken);
+        } else {
+          sendLongMessage(senderId, result, pageAccessToken);
+        }
+      } else {
+        sendLongMessage(senderId, result, pageAccessToken);
+      }
 
     } catch (error) {
-      console.error("Error while processing your request:", error);
       sendMessage(senderId, { text: "Error while processing your request. Please try again or use gpt4." }, pageAccessToken);
     }
   }
 };
 
-
-function sendLongMessage(senderId, text, pageAccessToken, sendMessage) {
+function sendLongMessage(senderId, text, pageAccessToken) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000; // 1 second
+  const delayBetweenMessages = 1000;
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
@@ -46,7 +65,6 @@ function sendLongMessage(senderId, text, pageAccessToken, sendMessage) {
   }
 }
 
-// Splits a message into chunks of the specified size
 function splitMessageIntoChunks(message, chunkSize) {
   const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
   return message.match(regex);
