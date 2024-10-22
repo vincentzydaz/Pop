@@ -8,7 +8,6 @@ const app = express();
 app.use(bodyParser.json());
 
 const VERIFY_TOKEN = 'pagebot';
-
 const PAGE_ACCESS_TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
 
 app.get('/webhook', (req, res) => {
@@ -18,7 +17,6 @@ app.get('/webhook', (req, res) => {
 
   if (mode && token) {
     if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-      console.log('WEBHOOK_VERIFIED');
       res.status(200).send(challenge);
     } else {
       res.sendStatus(403);
@@ -39,7 +37,6 @@ app.post('/webhook', (req, res) => {
         }
       });
     });
-
     res.status(200).send('EVENT_RECEIVED');
   } else {
     res.sendStatus(404);
