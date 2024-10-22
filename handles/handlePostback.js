@@ -15,7 +15,7 @@ function handlePostback(event, pageAccessToken) {
             buttons: [
               {
                 type: "postback",
-                title: "help",
+                title: "commands",
                 payload: "HELP"
               }
             ]
