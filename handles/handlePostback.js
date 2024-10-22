@@ -1,4 +1,4 @@
-const { sendMessage } = require('./sendMessage');
+const axios = require('axios');
 
 function handlePostback(event, pageAccessToken) {
   const senderId = event.sender.id;
@@ -11,24 +11,34 @@ function handlePostback(event, pageAccessToken) {
           type: "template",
           payload: {
             template_type: "button",
-            text: "Welcome to Chillibot! Ready to explore our AI and utility commands? If you want to see a list of commands, type 'help' or click the 'Commands' button below.",
+            text: "Welcome to Chilli Bot! Ready to explore our AI and utility commands? Type 'help' or click the 'Commands' button below.",
             buttons: [
               {
                 type: "postback",
-                title: "Commands",
+                title: "help",
                 payload: "HELP"
               }
             ]
           }
         }
       };
-
       sendMessage(senderId, welcomeMessage, pageAccessToken);
     } else {
       sendMessage(senderId, { text: `You sent a postback with payload: ${payload}` }, pageAccessToken);
     }
-  } else {
-    console.error('Invalid postback event data');
+  }
+}
+
+async function sendMessage(senderId, message, pageAccessToken) {
+  try {
+    await axios.post(`https://graph.facebook.com/v13.0/me/messages`, {
+      recipient: { id: senderId },
+      message: message,
+    }, {
+      params: { access_token: pageAccessToken },
+    });
+  } catch (error) {
+    console.error('Error sending message:', error.message);
   }
 }
 
