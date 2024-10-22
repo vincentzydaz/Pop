@@ -7,14 +7,21 @@ module.exports = {
   author: "Churchill",
 
   async execute(pogi, chilli, maasim) {
-    if (!chilli.attachments || chilli.attachments.length === 0) {
-      return sendMessage(pogi, { text: "Please send an image attachment to use the Gemini command." }, maasim);
+    // Check if the message is a reply to another message
+    const repliedMessage = chilli.reply_to;
+
+    // Check if the replied message contains an image attachment
+    let imageUrl = null;
+    if (repliedMessage && repliedMessage.attachments && repliedMessage.attachments.length > 0) {
+      const attachment = repliedMessage.attachments[0];
+      if (attachment.type === "image") {
+        imageUrl = attachment.payload.url;
+      }
     }
 
-    const imageUrl = chilli.attachments[0].payload.url;
-
+    // If no image URL was found, notify the user
     if (!imageUrl) {
-      return sendMessage(pogi, { text: "Unable to retrieve the image URL. Please try again." }, maasim);
+      return sendMessage(pogi, { text: "Please reply to an image attachment to use the Gemini command." }, maasim);
     }
 
     const query = chilli.text.split(" ").slice(1).join(" ").trim() || "describe";
