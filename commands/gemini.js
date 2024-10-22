@@ -1,35 +1,43 @@
-const { callGeminiAPI } = require('../utils/callGeminiAPI');
-module.exports = {
-  name: 'gemini',
-  description: 'Ask a question to the Gemini AI',
-  author: 'ChatGPT',
-  async execute(senderId, args, pageAccessToken, sendMessage) {
-    const prompt = args.join(' ');
-    try {
-      sendMessage(senderId, { text: '💬 | 𝙰𝚗𝚜𝚠𝚎𝚛𝚒𝚗𝚐...' }, pageAccessToken);
-      const response = await callGeminiAPI(prompt);
+const axios = require("axios");
+const { sendMessage } = require('../handles/sendMessage');
 
-      // Split the response into chunks if it exceeds 2000 characters
-      const maxMessageLength = 2000;
-      if (response.length > maxMessageLength) {
-        const messages = splitMessageIntoChunks(response, maxMessageLength);
-        for (const message of messages) {
-          sendMessage(senderId, { text: message }, pageAccessToken);
+module.exports = {
+  name: "gemini",
+  description: "Use the Gemini API to analyze an image and provide a response.",
+  author: "Churchill",
+
+  async execute(pogi, chilli, maasim) {
+    if (!chilli.attachments || chilli.attachments.length === 0) {
+      return sendMessage(pogi, { text: "Please send an image attachment to use the Gemini command." }, maasim);
+    }
+
+    const imageUrl = chilli.attachments[0].payload.url;
+
+    if (!imageUrl) {
+      return sendMessage(pogi, { text: "Unable to retrieve the image URL. Please try again." }, maasim);
+    }
+
+    const query = chilli.text.split(" ").slice(1).join(" ").trim() || "describe";
+
+    sendMessage(pogi, { text: `Analyzing the image...` }, maasim);
+
+    try {
+      const response = await axios.get("https://ccprojectapis.ddns.net/api/gemini", {
+        params: {
+          ask: query,
+          imgurl: imageUrl
         }
+      });
+
+      if (response.data && response.data.status === true) {
+        const geminiResponse = response.data.vision;
+        sendMessage(pogi, { text: geminiResponse }, maasim);
       } else {
-        sendMessage(senderId, { text: response }, pageAccessToken);
+        sendMessage(pogi, { text: "Failed to get a response from the Gemini API. Please try again." }, maasim);
       }
     } catch (error) {
-      console.error('Error calling Gemini API:', error);
-      sendMessage(senderId, { text: '.' }, pageAccessToken);
+      console.error("Error in Gemini command:", error);
+      sendMessage(pogi, { text: "An error occurred while processing the image. Please try again." }, maasim);
     }
   }
 };
-
-function splitMessageIntoChunks(message, chunkSize) {
-  const chunks = [];
-  for (let i = 0; i < message.length; i += chunkSize) {
-    chunks.push(message.slice(i, i + chunkSize));
-  }
-  return chunks;
-}
