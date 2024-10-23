@@ -1,11 +1,12 @@
 const axios = require("axios");
+const { sendMessage } = require("../sendMessage"); // Import sendMessage directly
 
 module.exports = {
   name: "spotify",
   description: "Search for a Spotify track using a keyword",
   author: "churchill",
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken) { // Removed sendMessage parameter
     const searchQuery = args.join(" ");
 
     if (!searchQuery) {
