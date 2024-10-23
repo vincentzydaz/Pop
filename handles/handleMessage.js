@@ -11,6 +11,7 @@ const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
   commands.set(command.name.toLowerCase(), command);
+  console.log(`Loaded command: ${command.name}`);
 }
 
 async function handleMessage(event, pageAccessToken) {
@@ -23,6 +24,7 @@ async function handleMessage(event, pageAccessToken) {
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
+    console.log(`Received message: ${messageText}`);
 
     let commandName, args;
     if (messageText.startsWith(prefix)) {
@@ -35,13 +37,20 @@ async function handleMessage(event, pageAccessToken) {
       args = words;
     }
 
+    console.log(`Parsed command: ${commandName} with arguments: ${args}`);
+
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
       try {
         let imageUrl = '';
         // Check for image attachment or reply with an image
         if (event.message.reply_to && event.message.reply_to.mid) {
-          imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
+          try {
+            imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
+          } catch (error) {
+            console.error("Failed to get attachment:", error);
+            imageUrl = ''; // Ensure imageUrl is empty if it fails
+          }
         } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
           imageUrl = event.message.attachments[0].payload.url;
         }
@@ -49,12 +58,12 @@ async function handleMessage(event, pageAccessToken) {
         // Execute the command
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
-        console.error(`Error executing command "${commandName}":`, error);
+        console.error(`Error executing command "${commandName}": ${error.message}`, error);
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
       // If the command is not found
-      sendMessage(senderId, { text: `Unknown command: "${commandName}". Please try a valid command.` }, pageAccessToken);
+      sendMessage(senderId, { text: `Unknown command: "${commandName}". Type "help" for a list of available commands.` }, pageAccessToken);
     }
   } else {
     console.error('Message or text is not present in the event.');
