@@ -6,76 +6,63 @@ module.exports = {
   description: "Interact with Google Gemini for image recognition and text queries.",
   author: "Churchill",
 
-  async execute(senderId, args, pageAccessToken, event) {
-    const prompt = args.join(" ");
-    if (!prompt) {
-      return sendMessage(senderId, { text: `Please enter your question!\n\nExample: gemini what is love?` }, pageAccessToken);
+  async execute(chilli, pogi, kalamansi, event) {
+    const kalamansiPrompt = pogi.join(" ");
+    if (!kalamansiPrompt) {
+      return sendMessage(chilli, { text: `Please enter your question!\n\nExample: gemini what is love?` }, kalamansi);
     }
 
-    sendMessage(senderId, { text: "Please wait... 🔎" }, pageAccessToken);
+    sendMessage(chilli, { text: "Please wait... 🔎" }, kalamansi);
 
     try {
-      let imageUrl = "";
-
-      // Check if the user replied to an image
-      if (event.message && event.message.reply_to && event.message.reply_to.mid) {
-        imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
-      } else if (event.attachments && event.attachments[0]?.type === 'image') {
-        // Check if the original message contains an image attachment
-        imageUrl = event.attachments[0].payload.url;
-      }
+      // Check if the message contains image attachments or is a reply to an image
+      const attachments = event.message?.attachments && event.message.attachments[0]?.type === 'image'
+        ? event.message.attachments
+        : null;
+      const imageUrl = attachments ? attachments[0].payload.url : "";
 
       const apiUrl = `https://joshweb.click/gemini`;
-      const chilli = await axios.get(apiUrl, {
-        params: {
-          prompt,
-          url: imageUrl || ""  // Provide the imageUrl if it exists
-        }
-      });
 
-      const result = chilli.data.gemini;
+      // Use the handleImageRecognition function
+      const chilliResponse = await handleImageRecognition(apiUrl, kalamansiPrompt, imageUrl);
+      const result = chilliResponse.gemini;
 
-      sendLongMessage(senderId, result, pageAccessToken);
+      sendLongMessage(chilli, result, kalamansi);
 
     } catch (error) {
-      sendMessage(senderId, { text: `Error: ${error.message || "Something went wrong."}` }, pageAccessToken);
+      sendMessage(chilli, { text: `Error: ${error.message || "Something went wrong."}` }, kalamansi);
     }
   }
 };
 
-// Function to fetch the image URL from a reply
-async function getAttachments(mid, pageAccessToken) {
-  if (!mid) throw new Error("No message ID provided.");
-
-  const { data } = await axios.get(`https://graph.facebook.com/v21.0/${mid}/attachments`, {
-    params: { access_token: pageAccessToken }
+// Function to handle image recognition
+async function handleImageRecognition(apiUrl, prompt, imageUrl) {
+  const { data } = await axios.get(apiUrl, {
+    params: {
+      prompt,
+      url: imageUrl || "" // Use imageUrl if available, or pass an empty string
+    }
   });
 
-  if (data && data.data.length > 0 && data.data[0].image_data) {
-    return data.data[0].image_data.url;  // Return the image URL
-  } else {
-    throw new Error("No image found in the replied message.");
-  }
+  return data;
 }
 
-// Function to send long messages
-function sendLongMessage(senderId, text, pageAccessToken) {
+function sendLongMessage(chilli, text, kalamansi) {
   const maxMessageLength = 2000;
   const delayBetweenMessages = 1000;
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
-    sendMessage(senderId, { text: messages[0] }, pageAccessToken);
+    sendMessage(chilli, { text: messages[0] }, kalamansi);
 
     messages.slice(1).forEach((message, index) => {
-      setTimeout(() => sendMessage(senderId, { text: message }, pageAccessToken), (index + 1) * delayBetweenMessages);
+      setTimeout(() => sendMessage(chilli, { text: message }, kalamansi), (index + 1) * delayBetweenMessages);
     });
   } else {
-    sendMessage(senderId, { text }, pageAccessToken);
+    sendMessage(chilli, { text }, kalamansi);
   }
 }
 
-// Helper function to split message into chunks
 function splitMessageIntoChunks(message, chunkSize) {
   const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
   return message.match(regex);
