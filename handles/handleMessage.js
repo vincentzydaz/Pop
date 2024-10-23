@@ -37,7 +37,6 @@ async function handleMessage(event, pageAccessToken) {
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
       try {
-        // Check if the message is a reply or if it has an attachment
         let imageUrl = '';
         if (event.message && event.message.reply_to && event.message.reply_to.mid) {
           imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
@@ -45,7 +44,6 @@ async function handleMessage(event, pageAccessToken) {
           imageUrl = event.message.attachments[0].payload.url;
         }
 
-        // Execute command and pass imageUrl as additional parameter
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
         console.error(`Error executing command ${commandName}:`, error);
@@ -65,7 +63,7 @@ async function getAttachments(mid, pageAccessToken) {
   });
 
   if (data && data.data.length > 0 && data.data[0].image_data) {
-    return data.data[0].image_data.url;  // Return the image URL
+    return data.data[0].image_data.url;
   } else {
     throw new Error("No image found in the replied message.");
   }
