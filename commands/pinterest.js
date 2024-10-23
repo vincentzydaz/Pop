@@ -1,14 +1,12 @@
 const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 
-
-
 module.exports = {
   name: "pinterest",
   description: "Sends Pinterest images based on your search",
   author: "chilli",
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken) {
     try {
       if (args.length === 0) {
         return sendMessage(senderId, {
@@ -35,7 +33,6 @@ module.exports = {
         return sendMessage(senderId, { text: `No available images for "${searchTerm}".` }, pageAccessToken);
       }
 
-      // Send each image URL as an attachment
       for (const url of imageUrls) {
         await sendMessage(senderId, {
           attachment: {
