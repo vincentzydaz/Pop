@@ -1,38 +1,33 @@
 const request = require('request');
 
-function sendMessage(senderId, message, pageAccessToken) {
-  if (!message || (!message.text && !message.attachment)) {
-    console.error('Error: Message must provide valid text or attachment.');
-    return;
+async function sendMessage(senderId, message, mid = null, pageAccesToken) {
+  try {
+    await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
+      recipient: { id: senderId },
+      sender_action: "typing_on"
+    });
+
+    const messagePayload = {
+      recipient: { id: senderId },
+      message: message.text ? { text: message.text } : { attachment: message.attachment }
+    };
+
+    const res = await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, messagePayload);
+
+    await axios.post(`https://graph.facebook.com/v21.0/me/messages?access_token=${PAGE_ACCESS_TOKEN}`, {
+      recipient: { id: senderId },
+      sender_action: "typing_off"
+    });
+
+    return res.data;
+  } catch (error) {
+    console.error();
   }
-
-  const payload = {
-    recipient: { id: senderId },
-    message: {}
-  };
-
-  if (message.text) {
-    payload.message.text = message.text;
-  }
-
-  if (message.attachment) {
-    payload.message.attachment = message.attachment;
-  }
-
-  request({
-    url: 'https://graph.facebook.com/v13.0/me/messages',
-    qs: { access_token: pageAccessToken },
-    method: 'POST',
-    json: payload,
-  }, (error, response, body) => {
-    if (error) {
-      console.error('Error sending message:', error);
-    } else if (response.body.error) {
-      console.error('Error response:', response.body.error);
-    } else {
-      console.log('Message sent successfully:', body);
-    }
-  });
 }
 
-module.exports = { sendMessage };
+
+async function handleMessage(event, pageAccessToken) {
+  if (!event || !event.sender || !event.message) {
+    console.error();
+    return;
+  }
