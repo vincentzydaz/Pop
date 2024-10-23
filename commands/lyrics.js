@@ -1,4 +1,6 @@
 const axios = require("axios");
+const { sendMessage } = require('../handles/sendMessage');
+
 
 module.exports = {
   name: "lyrics",
