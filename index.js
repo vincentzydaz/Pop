@@ -101,23 +101,9 @@ const setupGetStartedButton = async () => {
   }
 };
 
-const setupGreetingMessage = async () => {
-  try {
-    const response = await axios.post(
-      `https://graph.facebook.com/v21.0/me/messenger_profile?access_token=${PAGE_ACCESS_TOKEN}`,
-      { greeting: [{ locale: 'default', text: 'Hello! Welcome to chilli bot. Click "Get Started" to begin!' }] },
-      { headers: { "Content-Type": "application/json" } }
-    );
-    console.log('Greeting message set up successfully:', response.data);
-  } catch (error) {
-    console.error('Error setting up greeting message:', error.response ? error.response.data : error);
-  }
-};
-
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await loadMenuCommands();
   await setupGetStartedButton();
-  await setupGreetingMessage();
 });
