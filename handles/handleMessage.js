@@ -37,30 +37,23 @@ async function handleMessage(event, pageAccessToken) {
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
       try {
-        // Fetch image URL if the message is a reply to an image
-        let imageUrl = "";
+        // Check if the message is a reply or if it has an attachment
+        let imageUrl = '';
         if (event.message && event.message.reply_to && event.message.reply_to.mid) {
           imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
-        } else if (event.attachments && event.attachments[0]?.type === 'image') {
-          imageUrl = event.attachments[0].payload.url;
+        } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
+          imageUrl = event.message.attachments[0].payload.url;
         }
 
-        // Pass imageUrl along with args to the command
+        // Execute command and pass imageUrl as additional parameter
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
         console.error(`Error executing command ${commandName}:`, error);
-        if (error.message) {
-          sendMessage(senderId, { text: error.message }, pageAccessToken);
-        } else {
-          sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
-        }
+        sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
       }
-      return;
+    } else {
+      sendMessage(senderId, { text: `Unknown command: ${commandName}` }, pageAccessToken);
     }
-  } else if (event.message) {
-    console.log('Received message without text');
-  } else {
-    console.log('Received event without message');
   }
 }
 
