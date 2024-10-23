@@ -1,11 +1,12 @@
 const fs = require('fs');
 const path = require('path');
+const { sendMessage } = require('../sendMessage'); // Import sendMessage directly
 
 module.exports = {
   name: 'help',
   description: 'Show available commands',
   author: 'chilli',
-  execute(senderId, args, pageAccessToken, sendMessage) {
+  execute(senderId, args, pageAccessToken) {
     const commandsDir = path.join(__dirname, '../commands');
     const commandFiles = fs.readdirSync(commandsDir).filter(file => file.endsWith('.js'));
 
