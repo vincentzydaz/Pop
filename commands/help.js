@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
-const { sendMessage } = require('../sendMessage'); // Import sendMessage directly
+const { sendMessage } = require('../handles/sendMessage');
+ 
 
 module.exports = {
   name: 'help',
