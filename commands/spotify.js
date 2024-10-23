@@ -1,12 +1,12 @@
 const axios = require("axios");
-const { sendMessage } = require("../sendMessage"); // Import sendMessage directly
+const { sendMessage } = require('../handles/sendMessage'); // Correctly import sendMessage
 
 module.exports = {
   name: "spotify",
   description: "Search for a Spotify track using a keyword",
   author: "churchill",
 
-  async execute(senderId, args, pageAccessToken) { // Removed sendMessage parameter
+  async execute(senderId, args, pageAccessToken) {
     const searchQuery = args.join(" ");
 
     if (!searchQuery) {
