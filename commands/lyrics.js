@@ -1,13 +1,12 @@
 const axios = require("axios");
 const { sendMessage } = require('../handles/sendMessage');
 
-
 module.exports = {
   name: "lyrics",
   description: "Get song lyrics by title",
   author: "chilli",
 
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken) {
     const songTitle = args.join(" ");
 
     if (!songTitle) {
@@ -21,22 +20,20 @@ module.exports = {
         params: { title: songTitle }
       });
 
-      if (!res || !res.data || !res.data.content) {
+      if (!res.data || !res.data.content) {
         throw new Error("No lyrics found for this song.");
       }
 
       const { title, artist, lyrics, url, song_thumbnail } = res.data.content;
 
       const maxLyricsLength = 2000;
-      let trimmedLyrics = lyrics;
-      if (lyrics.length > maxLyricsLength) {
-        trimmedLyrics = lyrics.substring(0, maxLyricsLength) + "...";
-      }
+      const trimmedLyrics = lyrics.length > maxLyricsLength
+        ? lyrics.substring(0, maxLyricsLength) + "..."
+        : lyrics;
 
       const lyricsMessage = `🎵 *${title}* by *${artist}*\n\n${trimmedLyrics}\n\n🔗 Read more: ${url}`;
       await sendMessage(senderId, { text: lyricsMessage }, pageAccessToken);
 
-      // Send song thumbnail if available
       if (song_thumbnail) {
         await sendMessage(senderId, {
           attachment: {
