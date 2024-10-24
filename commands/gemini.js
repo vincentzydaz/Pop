@@ -29,7 +29,7 @@ module.exports = {
       const chilliResponse = await handleImageRecognition(apiUrl, kalamansiPrompt, imageUrl);
       const result = chilliResponse.gemini;
 
-      sendLongMessage(chilli, result, kalamansi);
+      sendConcatenatedMessage(chilli, result, kalamansi);
 
     } catch (error) {
       console.error("Error in Gemini command:", error);
@@ -61,23 +61,17 @@ async function getRepliedImage(mid, kalamansi) {
   }
 }
 
-async function sendLongMessage(chilli, text, kalamansi) {
+async function sendConcatenatedMessage(chilli, text, kalamansi) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000; // 1 second delay between messages
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
-    for (const message of messages) {
-      await sendMessage(chilli, { text: message }, kalamansi);
-      await delay(delayBetweenMessages);
-    }
+    const concatenatedMessage = messages.join("\n\n"); // Join chunks with newlines for better readability
+
+    await sendMessage(chilli, { text: concatenatedMessage }, kalamansi);
   } else {
     await sendMessage(chilli, { text }, kalamansi);
   }
-}
-
-function delay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function splitMessageIntoChunks(message, chunkSize) {
