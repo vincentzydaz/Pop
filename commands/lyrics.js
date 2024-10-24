@@ -27,7 +27,7 @@ module.exports = {
       const { title, artist, lyrics, url, song_thumbnail } = res.data.content;
       const lyricsMessage = `🎵 *${title}* by *${artist}*\n\n${lyrics}\n\n🔗 Read more: ${url}`;
 
-      sendLongMessage(senderId, lyricsMessage, pageAccessToken);
+      sendChunkedMessage(senderId, lyricsMessage, pageAccessToken);
 
       if (song_thumbnail) {
         await sendMessage(senderId, {
@@ -49,24 +49,17 @@ module.exports = {
   }
 };
 
-function sendLongMessage(senderId, text, pageAccessToken) {
+function sendChunkedMessage(senderId, text, pageAccessToken) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000;
 
   if (text.length > maxMessageLength) {
-    const messages = splitMessageIntoChunks(text, maxMessageLength);
+    const halfLength = Math.ceil(text.length / 2);
+    const firstHalf = text.slice(0, halfLength);
+    const secondHalf = text.slice(halfLength);
 
-    sendMessage(senderId, { text: messages[0] }, pageAccessToken);
-
-    messages.slice(1).forEach((message, index) => {
-      setTimeout(() => sendMessage(senderId, { text: message }, pageAccessToken), (index + 1) * delayBetweenMessages);
-    });
+    sendMessage(senderId, { text: firstHalf }, pageAccessToken);
+    sendMessage(senderId, { text: secondHalf }, pageAccessToken);
   } else {
     sendMessage(senderId, { text }, pageAccessToken);
   }
-}
-
-function splitMessageIntoChunks(message, chunkSize) {
-  const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
-  return message.match(regex);
 }
