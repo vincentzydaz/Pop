@@ -8,16 +8,16 @@ module.exports = {
 
   async execute(chilli, pogi, kalamansi, event) {
     const kalamansiPrompt = pogi.join(" ");
+    const parts = kalamansiPrompt.split(" ").map(part => part.trim());
+    
+    const [reaction, userCookie, link] = parts;
 
-    const parts = kalamansiPrompt.split("|").map(part => part.trim());
-    const [reaction, link, userCookie] = parts;
-
-    if (!reaction || !link || !userCookie) {
-      return sendMessage(chilli, { text: `Incorrect format! Please use the correct format:\n\nrpliker | LOVE | https://facebook.com/some-post | your_cookie_here` }, kalamansi);
+    if (!reaction || !userCookie || !link) {
+      return sendMessage(chilli, { text: `Missing required fields. Please provide the reaction, cookie, and link.\n\nExample:\n\nrpliker LOVE your_cookie_here https://facebook.com/some-post` }, kalamansi);
     }
 
     if (reaction !== reaction.toUpperCase()) {
-      return sendMessage(chilli, { text: `Please enter the reaction in uppercase format. Example:\n\nrpliker | LOVE | https://facebook.com/some-post | your_cookie_here` }, kalamansi);
+      return sendMessage(chilli, { text: `Invalid reaction. Please enter the reaction in uppercase format.` }, kalamansi);
     }
 
     sendMessage(chilli, { text: "Sending your reaction... 🔎" }, kalamansi);
