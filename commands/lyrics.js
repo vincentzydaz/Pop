@@ -51,6 +51,7 @@ module.exports = {
 
 function sendChunkedMessage(senderId, text, pageAccessToken) {
   const maxMessageLength = 2000;
+  const delayBetweenMessages = 2000; // Delay of 2 seconds
 
   if (text.length > maxMessageLength) {
     const halfLength = Math.ceil(text.length / 2);
@@ -58,7 +59,10 @@ function sendChunkedMessage(senderId, text, pageAccessToken) {
     const secondHalf = text.slice(halfLength);
 
     sendMessage(senderId, { text: firstHalf }, pageAccessToken);
-    sendMessage(senderId, { text: secondHalf }, pageAccessToken);
+
+    setTimeout(() => {
+      sendMessage(senderId, { text: secondHalf }, pageAccessToken);
+    }, delayBetweenMessages);
   } else {
     sendMessage(senderId, { text }, pageAccessToken);
   }
