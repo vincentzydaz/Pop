@@ -19,6 +19,10 @@ function sendMessage(senderId, message, pageAccessToken) {
     payload.message.attachment = message.attachment;
   }
 
+  if (message.quick_replies) {  // Check if quick replies are present
+    payload.message.quick_replies = message.quick_replies;
+  }
+
   request({
     url: 'https://graph.facebook.com/v13.0/me/messages',
     qs: { access_token: pageAccessToken },
