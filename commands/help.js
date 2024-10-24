@@ -1,7 +1,6 @@
 const fs = require('fs');
 const path = require('path');
 const { sendMessage } = require('../handles/sendMessage');
- 
 
 module.exports = {
   name: 'help',
@@ -13,7 +12,11 @@ module.exports = {
 
     const commands = commandFiles.map((file, index) => {
       const command = require(path.join(commandsDir, file));
-      return `${index + 1}. ${command.name} - ${command.description}`;
+      return {
+        title: command.name,
+        description: command.description,
+        payload: `${command.name.toUpperCase()}_PAYLOAD` // Assuming you handle payloads for commands
+      };
     });
 
     const totalCommands = commandFiles.length;
@@ -26,7 +29,8 @@ module.exports = {
     }
 
     if (args[0] && args[0].toLowerCase() === 'all') {
-      const helpMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\n${commands.join('\n\n')}\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+      const helpMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\n${commands.map((cmd, index) => `${index + 1}. ${cmd.title} - ${cmd.description}`).join('\n\n')}\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+
       return sendMessage(senderId, { text: helpMessage }, pageAccessToken);
     }
 
@@ -38,8 +42,26 @@ module.exports = {
       return sendMessage(senderId, { text: `Invalid page number. There are only ${totalPages} pages.` }, pageAccessToken);
     }
 
-    const helpMessage = `📋 | CMD List (Page ${page} of ${totalPages}):\n🏷 Total Commands: ${totalCommands}\n\n${commandsForPage.join('\n\n')}\n\nType "help [page]" to see another page, or "help all" to show all commands.\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+    // Building quick replies for available commands
+    const quickReplies = commandsForPage.map((cmd) => ({
+      content_type: "text",
+      title: cmd.title,
+      payload: cmd.payload
+    }));
 
-    sendMessage(senderId, { text: helpMessage }, pageAccessToken);
+    const helpMessage = `📋 | CMD List (Page ${page} of ${totalPages}):\n🏷 Total Commands: ${totalCommands}\n\nType "help [page]" to see another page, or "help all" to show all commands.\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+
+    // Send the message with quick replies for commands
+    sendMessage(senderId, {
+      text: helpMessage,
+      quick_replies: quickReplies,
+      buttons: [
+        {
+          type: "web_url",
+          url: "https://www.facebook.com/Churchill.Dev4100", // Link to developer's Facebook profile
+          title: "Contact Developer"
+        }
+      ]
+    }, pageAccessToken);
   }
 };
