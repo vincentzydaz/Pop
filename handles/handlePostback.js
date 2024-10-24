@@ -7,11 +7,11 @@ const handlePostback = (event, pageAccessToken) => {
   if (senderId && payload) {
     if (payload === 'GET_STARTED_PAYLOAD') {
       const welcomeMessage = {
-        text: `🔥 Welcome to CHILLI BOT! 🔥\n\nI'm your AI-powered assistant, here to make things spicier and smoother! 🌶️\n\nType 'help' below or click help below to see commands, and let’s get started on this fun journey together. How can I assist you today?`,
+        text: `🔥 Welcome to CHILLI BOT! 🔥\n\nI'm your AI-powered assistant, here to make things spicier and smoother! 🌶️\n\nHow can I assist you today?`,
         quick_replies: [
           {
             content_type: "text",
-            title: "help",
+            title: "Help",
             payload: "HELP"
           }
         ]
