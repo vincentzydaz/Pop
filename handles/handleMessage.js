@@ -4,9 +4,9 @@ const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const prefix = ''; // Define the prefix if necessary
+const prefix = ''; // No prefix needed
 
-
+// Load all command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
@@ -26,16 +26,11 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
+    // No need for prefix; we will just split the message directly
     let commandName, args;
-    if (messageText.startsWith(prefix)) {
-      const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift().toLowerCase();
-      args = argsArray;
-    } else {
-      const words = messageText.split(' ');
-      commandName = words.shift().toLowerCase();
-      args = words;
-    }
+    const words = messageText.split(' ');
+    commandName = words.shift().toLowerCase(); // Get the first word as the command
+    args = words; // The rest are arguments
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
@@ -43,6 +38,7 @@ async function handleMessage(event, pageAccessToken) {
       const command = commands.get(commandName);
       try {
         let imageUrl = '';
+        // Check if replying to a message with an attachment
         if (event.message.reply_to && event.message.reply_to.mid) {
           try {
             imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
@@ -54,14 +50,14 @@ async function handleMessage(event, pageAccessToken) {
           imageUrl = event.message.attachments[0].payload.url;
         }
 
-        
+        // Execute the command
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
         console.error(`Error executing command "${commandName}": ${error.message}`, error);
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
-    
+      // Handle unknown commands
       sendMessage(senderId, {
         text: `Unknown command: "${commandName}". Type "help" or click help below for a list of available commands.`,
         quick_replies: [
@@ -78,6 +74,7 @@ async function handleMessage(event, pageAccessToken) {
   }
 }
 
+// Helper function to get attachments
 async function getAttachments(mid, pageAccessToken) {
   if (!mid) {
     console.error("No message ID provided for getAttachments.");
