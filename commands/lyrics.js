@@ -51,7 +51,7 @@ module.exports = {
 
 function sendChunkedMessage(senderId, text, pageAccessToken) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 2000; // Delay of 2 seconds
+  const delayBetweenMessages = 1000; // Delay of1 seconds
 
   if (text.length > maxMessageLength) {
     const halfLength = Math.ceil(text.length / 2);
