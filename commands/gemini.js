@@ -61,20 +61,23 @@ async function getRepliedImage(mid, kalamansi) {
   }
 }
 
-function sendLongMessage(chilli, text, kalamansi) {
+async function sendLongMessage(chilli, text, kalamansi) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000; // 1 second delay para di magloko
+  const delayBetweenMessages = 1000; // 1 second delay between messages
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
-    sendMessage(chilli, { text: messages[0] }, kalamansi);
-
-    messages.slice(1).forEach((message, index) => {
-      setTimeout(() => sendMessage(chilli, { text: message }, kalamansi), (index + 1) * delayBetweenMessages);
-    });
+    for (const message of messages) {
+      await sendMessage(chilli, { text: message }, kalamansi);
+      await delay(delayBetweenMessages);
+    }
   } else {
-    sendMessage(chilli, { text }, kalamansi);
+    await sendMessage(chilli, { text }, kalamansi);
   }
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function splitMessageIntoChunks(message, chunkSize) {
