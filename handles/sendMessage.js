@@ -1,4 +1,18 @@
 const request = require('request');
+const axios = require('axios');
+
+async function typingIndicator(senderId, pageAccessToken) {
+  try {
+    await axios.post(`https://graph.facebook.com/v13.0/me/messages`, {
+      recipient: { id: senderId },
+      sender_action: 'typing_on',
+    }, {
+      params: { access_token: pageAccessToken },
+    });
+  } catch (error) {
+    console.error('Error sending typing indicator:', error.message);
+  }
+}
 
 function sendMessage(senderId, message, pageAccessToken) {
   if (!message || (!message.text && !message.attachment)) {
@@ -19,9 +33,11 @@ function sendMessage(senderId, message, pageAccessToken) {
     payload.message.attachment = message.attachment;
   }
 
-  if (message.quick_replies) {  // Check if quick replies are present
+  if (message.quick_replies) {
     payload.message.quick_replies = message.quick_replies;
   }
+
+  typingIndicator(senderId, pageAccessToken);
 
   request({
     url: 'https://graph.facebook.com/v13.0/me/messages',
@@ -39,4 +55,4 @@ function sendMessage(senderId, message, pageAccessToken) {
   });
 }
 
-module.exports = { sendMessage };
+module.exports = { sendMessage, typingIndicator };
