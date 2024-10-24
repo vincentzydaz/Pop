@@ -15,7 +15,7 @@ module.exports = {
       return {
         title: command.name,
         description: command.description,
-        payload: `${command.name.toUpperCase()}_PAYLOAD` // Assuming you handle payloads for commands
+        payload: `${command.name.toUpperCase()}_PAYLOAD`  // Assuming you handle payloads for commands
       };
     });
 
@@ -29,11 +29,30 @@ module.exports = {
     }
 
     if (args[0] && args[0].toLowerCase() === 'all') {
-      const helpMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\n${commands.map((cmd, index) => `${index + 1}. ${cmd.title} - ${cmd.description}`).join('\n\n')}\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+      // If "help all" is requested, show all commands with text + floating buttons
+      const helpTextMessage = `📋 | CMD List:\n🏷 Total Commands: ${totalCommands}\n\n${commands.map((cmd, index) => `${index + 1}. ${cmd.title} - ${cmd.description}`).join('\n\n')}\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
 
-      return sendMessage(senderId, { text: helpMessage }, pageAccessToken);
+      // Building quick replies for all commands
+      const quickRepliesAll = commands.map((cmd) => ({
+        content_type: "text",
+        title: cmd.title,
+        payload: cmd.payload
+      }));
+
+      return sendMessage(senderId, {
+        text: helpTextMessage,
+        quick_replies: quickRepliesAll,  // Floating buttons for all commands
+        buttons: [
+          {
+            type: "web_url",
+            url: "https://www.facebook.com/Churchill.Dev4100",
+            title: "Contact Developer"
+          }
+        ]
+      }, pageAccessToken);
     }
 
+    // For paginated help, show only the commands for the current page
     const startIndex = (page - 1) * commandsPerPage;
     const endIndex = startIndex + commandsPerPage;
     const commandsForPage = commands.slice(startIndex, endIndex);
@@ -42,23 +61,24 @@ module.exports = {
       return sendMessage(senderId, { text: `Invalid page number. There are only ${totalPages} pages.` }, pageAccessToken);
     }
 
-    // Building quick replies for available commands
-    const quickReplies = commandsForPage.map((cmd) => ({
+    // Text version of commands for current page
+    const helpTextMessage = `📋 | CMD List (Page ${page} of ${totalPages}):\n🏷 Total Commands: ${totalCommands}\n\n${commandsForPage.map((cmd, index) => `${startIndex + index + 1}. ${cmd.title} - ${cmd.description}`).join('\n\n')}\n\nType "help [page]" to see another page, or "help all" to show all commands.\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
+
+    // Building quick replies for commands on the current page
+    const quickRepliesPage = commandsForPage.map((cmd) => ({
       content_type: "text",
       title: cmd.title,
       payload: cmd.payload
     }));
 
-    const helpMessage = `📋 | CMD List (Page ${page} of ${totalPages}):\n🏷 Total Commands: ${totalCommands}\n\nType "help [page]" to see another page, or "help all" to show all commands.\n\nIf you have any problems with the pagebot, contact the developer:\nFB Link: https://www.facebook.com/Churchill.Dev4100`;
-
-    // Send the message with quick replies for commands
+    // Send the message with text and floating buttons (quick replies)
     sendMessage(senderId, {
-      text: helpMessage,
-      quick_replies: quickReplies,
+      text: helpTextMessage,
+      quick_replies: quickRepliesPage,  // Floating buttons for current page commands
       buttons: [
         {
           type: "web_url",
-          url: "https://www.facebook.com/Churchill.Dev4100", // Link to developer's Facebook profile
+          url: "https://www.facebook.com/Churchill.Dev4100",
           title: "Contact Developer"
         }
       ]
