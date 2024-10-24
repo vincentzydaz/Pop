@@ -2,44 +2,30 @@ const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
-  name: 'flux',
-  description: 'Generate an image based on a given prompt using the Flux API.',
-  usage: '-flux <prompt> [model 1-5]\nExample without model: -flux dog\nExample with model: -flux dog 5',
+  name: 'art',
+  description: 'Generate an image based on a prompt using the JoshWeb API.',
+  usage: 'art <prompt>\nExample: art dog',
   author: 'chilli',
   async execute(senderId, args, pageAccessToken) {
     if (!args || args.length === 0) {
       await sendMessage(senderId, {
-        text: 'Please provide a prompt to generate an image.\n\nUsage:\n-flux <prompt> [model 1-5]\nExample without model: -flux dog\nExample with model: -flux dog 5'
+        text: 'Please provide a prompt to generate an image.\n\nUsage:\n art <prompt>\nExample: art dog'
       }, pageAccessToken);
       return;
     }
 
-    let model = 4;
-    const lastArg = args[args.length - 1];
-    if (/^[1-5]$/.test(lastArg)) {
-      model = lastArg;
-      args.pop();
-    }
-
     const prompt = args.join(' ');
-    const apiUrl = `https://joshweb.click/api/flux?prompt=${encodeURIComponent(prompt)}&model=${model}`;
+    const apiUrl = `https://joshweb.click/api/art?prompt=${encodeURIComponent(prompt)}`;
 
     await sendMessage(senderId, { text: 'Generating image... Please wait.' }, pageAccessToken);
 
     try {
-      const response = await axios({
-        method: 'GET',
-        url: apiUrl,
-        responseType: 'stream',
-      });
-
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
           payload: {
-            is_reusable: true
-          },
-          url: apiUrl
+            url: apiUrl
+          }
         }
       }, pageAccessToken);
 
