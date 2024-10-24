@@ -7,12 +7,19 @@ const handlePostback = (event, pageAccessToken) => {
   if (senderId && payload) {
     if (payload === 'GET_STARTED_PAYLOAD') {
       const welcomeMessage = {
-        text: `🔥 Welcome to CHILLI BOT! 🔥\n\nI'm your AI-powered assistant, here to make things spicier and smoother! 🌶️\n\nType 'help' or click (below) help to see my commands, and let’s get started on this fun journey together. How can I assist you today?`,
+        text: `🔥 Welcome to CHILLI BOT! 🔥\n\nI'm your AI-powered assistant, here to make things spicier and smoother! 🌶️\n\nType 'help' or click below to see my commands, or contact the developer directly.`,
         quick_replies: [
           {
             content_type: "text",
             title: "Help",
             payload: "HELP_PAYLOAD"  // Ensure this payload matches your case structure in the bot
+          }
+        ],
+        buttons: [
+          {
+            type: "web_url",
+            url: "https://www.facebook.com/Churchill.Dev4100", // Link to the developer's Facebook profile
+            title: "Contact Developer"
           }
         ]
       };
