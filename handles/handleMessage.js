@@ -6,7 +6,7 @@ const { sendMessage } = require('./sendMessage');
 const commands = new Map();
 const prefix = ''; // Define the prefix if necessary
 
-// Load command files
+
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
@@ -54,16 +54,16 @@ async function handleMessage(event, pageAccessToken) {
           imageUrl = event.message.attachments[0].payload.url;
         }
 
-        // Execute the command
+        
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
         console.error(`Error executing command "${commandName}": ${error.message}`, error);
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
-      // If the command is not found, send "Unknown command" message with quick replies
+    
       sendMessage(senderId, {
-        text: `Unknown command: "${commandName}". Type "help" for a list of available commands.`,
+        text: `Unknown command: "${commandName}". Type "help" or click help below for a list of available commands.`,
         quick_replies: [
           {
             content_type: "text",
