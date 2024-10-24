@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { sendMessage } = require('../handles/sendMessage');
+const { getAttachments } = require('../handles/handleMessage'); // Import getAttachments
 
 module.exports = {
   name: "remini",
@@ -9,13 +10,18 @@ module.exports = {
   async execute(chilli, pogi, kalamansi, event) {
     let imageUrl = "";
 
-    // Check if the user replied to a message with an image attachment
-    if (event.message.reply_to && event.message.reply_to.attachments && event.message.reply_to.attachments[0]?.type === 'image') {
-      console.log("Reply detected, getting image from reply...");
-      imageUrl = event.message.reply_to.attachments[0].payload.url;
+    // Check if the user replied to a message with an image attachment or mid
+    if (event.message.reply_to && event.message.reply_to.mid) {
+      try {
+        console.log("Reply detected, fetching image from the replied message...");
+        imageUrl = await getAttachments(event.message.reply_to.mid, kalamansi); // Get the image using getAttachments
+      } catch (error) {
+        console.error("Failed to get attachment:", error);
+        imageUrl = ""; // Ensure imageUrl is empty if it fails
+      }
     } 
     // Check if the current message contains an image attachment
-    else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
+    else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
       console.log("Image attached to the current message.");
       imageUrl = event.message.attachments[0].payload.url;
     }
