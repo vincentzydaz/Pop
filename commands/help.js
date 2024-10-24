@@ -13,7 +13,7 @@ module.exports = {
 
     const commands = commandFiles.map((file, index) => {
       const command = require(path.join(commandsDir, file));
-      return `${index + 1}. ${command.name} ${command.description}`;
+      return `${index + 1}. ${command.name} - ${command.description}`;
     });
 
     const totalCommands = commandFiles.length;
