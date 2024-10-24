@@ -43,7 +43,6 @@ async function handleMessage(event, pageAccessToken) {
       const command = commands.get(commandName);
       try {
         let imageUrl = '';
-        // Check for image attachment or reply with an image
         if (event.message.reply_to && event.message.reply_to.mid) {
           try {
             imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
@@ -62,8 +61,17 @@ async function handleMessage(event, pageAccessToken) {
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
-      // If the command is not found
-      sendMessage(senderId, { text: `Unknown command: "${commandName}". Type "help" for a list of available commands.` }, pageAccessToken);
+      // If the command is not found, send "Unknown command" message with quick replies
+      sendMessage(senderId, {
+        text: `Unknown command: "${commandName}". Type "help" for a list of available commands.`,
+        quick_replies: [
+          {
+            content_type: "text",
+            title: "Help",
+            payload: "HELP_PAYLOAD"
+          }
+        ]
+      }, pageAccessToken);
     }
   } else {
     console.error('Message or text is not present in the event.');
