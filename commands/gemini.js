@@ -8,7 +8,7 @@ module.exports = {
 
   async execute(chilli, pogi, kalamansi, event) {
     const kalamansiPrompt = pogi.join(" ");
-    
+
     if (!kalamansiPrompt) {
       return sendMessage(chilli, { text: `Please enter your question!\n\nExample: gemini what is love?` }, kalamansi);
     }
@@ -20,8 +20,7 @@ module.exports = {
 
       if (event.message.reply_to && event.message.reply_to.mid) {
         imageUrl = await getRepliedImage(event.message.reply_to.mid, kalamansi);
-      } 
-      else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
+      } else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
         imageUrl = event.message.attachments[0].payload.url;
       }
 
@@ -64,7 +63,7 @@ async function getRepliedImage(mid, kalamansi) {
 
 function sendLongMessage(chilli, text, kalamansi) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000;
+  const delayBetweenMessages = 1000; // 1 second delay para di magloko
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
