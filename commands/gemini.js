@@ -10,7 +10,7 @@ module.exports = {
     const kalamansiPrompt = pogi.join(" ");
 
     if (!kalamansiPrompt) {
-      return sendMessage(chilli, { text: `Please enter your question!\n\nExample: gemini what is love?` }, kalamansi);
+      return sendMessage(chilli, { text: `Please provide and image and replied to it using messenger or ask a question!\n\nExample: gemini what is ai?` }, kalamansi);
     }
 
     sendMessage(chilli, { text: "Please wait... 🔎" }, kalamansi);
@@ -66,9 +66,11 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
-    const concatenatedMessage = messages.join("\n\n"); // Join chunks with newlines for better readability
 
-    await sendMessage(chilli, { text: concatenatedMessage }, kalamansi);
+    for (let i = 0; i < messages.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
+      await sendMessage(chilli, { text: messages[i] }, kalamansi);
+    }
   } else {
     await sendMessage(chilli, { text }, kalamansi);
   }
