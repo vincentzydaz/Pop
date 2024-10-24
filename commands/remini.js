@@ -23,7 +23,7 @@ module.exports = {
     sendMessage(chilli, { text: "Processing image, please wait..." }, kalamansi);
 
     try {
-      const response = await handleImageEnhancement(`https://markdevs-last-api-2epw.onrender.com/api/remini`, imageUrl);
+      const response = await handleImageEnhancement(`https://markdevs69v2-679r.onrender.com/api/remini`, imageUrl);
       const processedImageURL = response.image_data;
 
       sendMessage(chilli, {
