@@ -4,22 +4,17 @@ const { sendMessage } = require('../handles/sendMessage');
 module.exports = {
   name: "remini",
   description: "Process an image using the Remini API for enhancement.",
-  author: "chilli",
+  author: "Mark Hitsuraan",
 
   async execute(chilli, pogi, kalamansi, event) {
     let imageUrl = "";
 
-    async function getRepliedImage(mid, kalamansi) {
-      const messageData = await getMessageById(mid, kalamansi);
-      if (messageData.attachments && messageData.attachments[0]?.type === 'image') {
-        return messageData.attachments[0].payload.url;
-      }
-      return null;
-    }
-
-    if (event.message.reply_to && event.message.reply_to.mid) {
-      imageUrl = await getRepliedImage(event.message.reply_to.mid, kalamansi);
-    } else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
+    // Directly access the image from the reply
+    if (event.message.reply_to && event.message.reply_to.attachments && event.message.reply_to.attachments[0]?.type === 'image') {
+      imageUrl = event.message.reply_to.attachments[0].payload.url;
+    } 
+    // Check if the current message has an image attachment
+    else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
       imageUrl = event.message.attachments[0].payload.url;
     }
 
