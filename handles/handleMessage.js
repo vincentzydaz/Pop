@@ -7,12 +7,18 @@ const prefix = ''; // Define the prefix
 
 const commands = new Map();
 
-// Load command files without converting command names to lowercase
+// Load command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  commands.set(command.name.toLowerCase(), command); // Store command names in lowercase
-  console.log(`Loaded command: ${command.name}`);
+  
+  // Ensure command has a valid "name" property before adding to the map
+  if (command.name && typeof command.name === 'string') {
+    commands.set(command.name.toLowerCase(), command);
+    console.log(`Loaded command: ${command.name}`);
+  } else {
+    console.warn(`Command file "${file}" is missing a valid "name" property.`);
+  }
 }
 
 async function handleMessage(event, pageAccessToken) {
@@ -34,7 +40,7 @@ async function handleMessage(event, pageAccessToken) {
       commandName = argsArray.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
       args = argsArray;
     } else {
-       
+      // Command without a prefix
       const words = messageText.split(' ');
       commandName = words.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
       args = words;
