@@ -69,7 +69,7 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
     
     // Send each message with a 1-second delay
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
+      await new Promise(resolve => setTimeout(resolve, 500)); // 1-second delay
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
