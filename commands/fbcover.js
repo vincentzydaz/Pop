@@ -23,17 +23,16 @@ module.exports = {
       return;
     }
 
-    const [name, subname, address, location, email, color = 'Cyan'] = params;
+    const [name, subname, address, location, email, color] = params;
     const apiUrl = `https://joshweb.click/canvas/fbcover?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&address=${encodeURIComponent(address)}&location=${encodeURIComponent(location)}&email=${encodeURIComponent(email)}&color=${encodeURIComponent(color)}`;
-
-    await sendMessage(senderId, { text: 'Generating Facebook cover image... Please wait.' }, pageAccessToken);
 
     try {
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
           payload: {
-            url: apiUrl
+            url: apiUrl,
+            is_reusable: true
           }
         }
       }, pageAccessToken);
