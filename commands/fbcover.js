@@ -1,38 +1,48 @@
 const axios = require('axios');
-const { sendMessage } = require('../handles/sendMessage'); // Ensure sendMessage is correctly imported
+const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'fbcover',
-  description: 'Generate a custom Facebook cover image',
-  usage: 'fbcover <name> | <subname> | <sdt> | <address> | <email> | <color>',
-  author: 'churchill',
+  description: 'Generate a Facebook cover image using the JoshWeb API.',
+  usage: 'fbcover name | subname | address | location | email | color\nExample: fbcover kupal | alyas kupal | dito kupal | taga kupal city | kupalgmail.com | cyan',
+  author: 'yourname',
   async execute(senderId, args, pageAccessToken) {
-    const input = args.join(' ').split('|').map(item => item.trim());
-
-    if (input.length < 6) {
-      await sendMessage(senderId, { text: 'Please provide all necessary details in the format: fbcover name | subname | sdt | address | email | color' }, pageAccessToken);
+    if (args.length < 1) {
+      await sendMessage(senderId, {
+        text: 'Please provide all required arguments in the format: fbcover name | subname | address | location | email | color'
+      }, pageAccessToken);
       return;
     }
 
-    const [name, subname, sdt, address, email, color] = input;
-    const apiUrl = `https://joshweb.click/canvas/fbcover?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&sdt=${encodeURIComponent(sdt)}&address=${encodeURIComponent(address)}&email=${encodeURIComponent(email)}&uid=${senderId}&color=${encodeURIComponent(color)}`;
+    const params = args.join(' ').split('|').map(param => param.trim());
+
+    if (params.length < 6) {
+      await sendMessage(senderId, {
+        text: 'Incomplete parameters. Please provide all fields in the format: fbcover name | subname | address | location | email | color'
+      }, pageAccessToken);
+      return;
+    }
+
+    const [name, subname, address, location, email, color = 'Cyan'] = params;
+    const apiUrl = `https://joshweb.click/canvas/fbcover?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&address=${encodeURIComponent(address)}&location=${encodeURIComponent(location)}&email=${encodeURIComponent(email)}&color=${encodeURIComponent(color)}`;
+
+    await sendMessage(senderId, { text: 'Generating Facebook cover image... Please wait.' }, pageAccessToken);
 
     try {
-      // Send the image back as a direct URL in the response
-      await sendMessage(
-        senderId, 
-        {
-          attachment: {
-            type: 'image',
-            payload: { url: apiUrl } // Direct image URL from API
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'image',
+          payload: {
+            url: apiUrl
           }
-        }, 
-        pageAccessToken
-      );
+        }
+      }, pageAccessToken);
 
     } catch (error) {
-      console.error('Error creating Facebook cover image:', error.response ? error.response.data : error);
-      await sendMessage(senderId, { text: 'Failed to generate the Facebook cover. Please try again later.' }, pageAccessToken);
+      console.error('Error generating Facebook cover image:', error);
+      await sendMessage(senderId, {
+        text: 'An error occurred while generating the Facebook cover. Please try again later.'
+      }, pageAccessToken);
     }
   }
 };
