@@ -5,7 +5,7 @@ module.exports = {
   name: 'fbcover',
   description: 'Generate a Facebook cover image using the JoshWeb API.',
   usage: 'fbcover name | subname | address | location | email | color\nExample: fbcover kupal | alyas kupal | dito kupal | taga kupal city | kupalgmail.com | cyan',
-  author: 'yourname',
+  author: 'chilli',
   async execute(senderId, args, pageAccessToken) {
     if (args.length < 1) {
       await sendMessage(senderId, {
