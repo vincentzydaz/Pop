@@ -1,5 +1,6 @@
 const axios = require("axios");
 const { sendMessage } = require('../handles/sendMessage');
+const { font } = require('../font'); 
 
 module.exports = {
   name: "ai",
@@ -20,6 +21,7 @@ module.exports = {
       });
 
       const result = response.data.response;
+      const formattedResult = applyFont(result, font.font); // Example lang, pwedeng palitan ng ibang font
 
       if (result.includes('TOOL_CALL: generateImage')) {
         const imageUrlMatch = result.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
@@ -36,10 +38,10 @@ module.exports = {
             }
           }, kalamansi);
         } else {
-          await sendConcatenatedMessage(chilli, result, kalamansi);
+          await sendConcatenatedMessage(chilli, formattedResult, kalamansi);
         }
       } else {
-        await sendConcatenatedMessage(chilli, result, kalamansi);
+        await sendConcatenatedMessage(chilli, formattedResult, kalamansi);
       }
 
     } catch (error) {
@@ -69,4 +71,9 @@ function splitMessageIntoChunks(message, chunkSize) {
     chunks.push(message.slice(i, i + chunkSize));
   }
   return chunks;
+}
+
+
+function applyFont(text, fontMap) {
+  return text.split('').map(char => fontMap[char] || char).join('');
 }
