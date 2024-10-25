@@ -10,16 +10,20 @@ module.exports = {
     const commandsDir = path.join(__dirname, '../commands');
     const commandFiles = fs.readdirSync(commandsDir).filter(file => file.endsWith('.js'));
 
-    const commands = commandFiles.map((file, index) => {
+    const commands = commandFiles.map((file) => {
       const command = require(path.join(commandsDir, file));
-      return {
-        title: command.name,
-        description: command.description,
-        payload: `${command.name.toUpperCase()}_PAYLOAD`
-      };
-    });
+      if (command.name && command.description) {
+        return {
+          title: command.name,
+          description: command.description,
+          payload: `${command.name.toUpperCase()}_PAYLOAD`
+        };
+      }
+      console.warn(`Command file "${file}" is missing a "name" or "description" property.`);
+      return null;
+    }).filter(cmd => cmd !== null);
 
-    const totalCommands = commandFiles.length;
+    const totalCommands = commands.length;
     const commandsPerPage = 5;
     const totalPages = Math.ceil(totalCommands / commandsPerPage);
     let page = parseInt(args[0], 10);
