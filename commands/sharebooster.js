@@ -1,4 +1,5 @@
 const axios = require('axios');
+const { sendMessage } = require('../handles/sendMessage'); 
 
 module.exports = {
   name: "sharebooster",
@@ -6,24 +7,24 @@ module.exports = {
   author: "Churchill",
 
   async execute(chilli, args, kalamansi) {
-    const [appState, postUrl, quantity = "100"] = args; // Default quantity to 1 if not provided
+    const [appState, postUrl, quantity = "100"] = args; 
     const delay = "1";    // Default delay to 1 second
 
     if (!appState || !postUrl) {
       return sendMessage(chilli, { text: "Usage: sharebooster [APPSTATE] [Post URL] [Quantity]" }, kalamansi);
     }
 
+  
     sendMessage(chilli, { text: `Boosting ${quantity} shares on ${postUrl} with a delay of ${delay} second...` }, kalamansi);
 
     try {
-      const response = await axios.get('https://rest-api.joshuaapostol.site/spamshare', {
-        headers: { 'Content-Type': 'application/json' },
-        data: {
-          state: appState,
-          url: postUrl,
-          quantity: quantity,
-          delay: delay
-        }
+      const response = await axios.post('https://rest-api.joshuaapostol.site/spamshare', {
+        state: appState,
+        url: postUrl,
+        quantity: quantity,
+        delay: delay
+      }, {
+        headers: { 'Content-Type': 'application/json' }
       });
 
       if (response.data.success) {
