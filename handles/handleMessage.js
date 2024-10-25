@@ -5,7 +5,6 @@ const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
 const prefix = ''; // No prefix needed
-const lastImageByUser = new Map();
 
 // Load all command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
@@ -22,58 +21,43 @@ async function handleMessage(event, pageAccessToken) {
   }
 
   const senderId = event.sender.id;
-  let imageUrl = null;
-
-  if (event.message && event.message.attachments) {
-    const imageAttachment = event.message.attachments.find(att => att.type === 'image');
-    if (imageAttachment) {
-      imageUrl = imageAttachment.payload.url;
-      lastImageByUser.set(senderId, imageUrl);
-    }
-  }
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
-    let commandName, args;
+    console.log(`Received message: ${messageText}`);
 
-    if (messageText.startsWith(prefix)) {
-      const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift().toLowerCase();
-      args = argsArray;
-    } else {
-      const words = messageText.split(' ');
-      commandName = words.shift().toLowerCase();
-      args = words;
-    }
+    // No need for prefix; we will just split the message directly
+    let commandName, args;
+    const words = messageText.split(' ');
+    commandName = words.shift().toLowerCase(); // Get the first word as the command
+    args = words; // The rest are arguments
+
+    console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
+      try {
+        let imageUrl = '';
+        // Check if replying to a message with an attachment
+        if (event.message.reply_to && event.message.reply_to.mid) {
+          try {
+            imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
+          } catch (error) {
+            console.error("Failed to get attachment:", error);
+            imageUrl = ''; // Ensure imageUrl is empty if it fails
+          }
+        } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
+          imageUrl = event.message.attachments[0].payload.url;
+        }
 
-      if (commandName === 'gemini') {
-        const lastImage = lastImageByUser.get(senderId);
-        if (lastImage) {
-          try {
-            await command.execute(senderId, args, pageAccessToken, lastImage);
-            lastImageByUser.delete(senderId);
-          } catch (error) {
-            await sendMessage(senderId, { text: 'An error occurred while explaining the image.' }, pageAccessToken);
-          }
-        } else {
-          try {
-            await command.execute(senderId, args, pageAccessToken);
-          } catch (error) {
-            await sendMessage(senderId, { text: 'There was an error processing your query.' }, pageAccessToken);
-          }
-        }
-      } else {
-        try {
-          await command.execute(senderId, args, pageAccessToken, event, imageUrl);
-        } catch (error) {
-          console.error(`Error executing command "${commandName}": ${error.message}`, error);
-          sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
-        }
+        // Execute the command
+        await command.execute(senderId, args, pageAccessToken, event, imageUrl);
+      } catch (error) {
+        console.error(`Error executing command "${commandName}": ${error.message}`, error);
+        sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
+      // Handle unknown commands
       sendMessage(senderId, {
         text: `Unknown command: "${commandName}". Type "help" or click help below for a list of available commands.`,
         quick_replies: [
@@ -87,6 +71,30 @@ async function handleMessage(event, pageAccessToken) {
     }
   } else {
     console.error('Message or text is not present in the event.');
+  }
+}
+
+// Helper function to get attachments
+async function getAttachments(mid, pageAccessToken) {
+  if (!mid) {
+    console.error("No message ID provided for getAttachments.");
+    throw new Error("No message ID provided.");
+  }
+
+  try {
+    const { data } = await axios.get(`https://graph.facebook.com/v21.0/${mid}/attachments`, {
+      params: { access_token: pageAccessToken }
+    });
+
+    if (data && data.data.length > 0 && data.data[0].image_data) {
+      return data.data[0].image_data.url;
+    } else {
+      console.error("No image found in the replied message.");
+      throw new Error("No image found in the replied message.");
+    }
+  } catch (error) {
+    console.error("Error fetching attachments:", error);
+    throw new Error("Failed to fetch attachments.");
   }
 }
 
