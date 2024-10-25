@@ -3,7 +3,7 @@ const path = require('path');
 const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
-const prefix = '-';
+const prefix = '';
 const commands = new Map();
 
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
