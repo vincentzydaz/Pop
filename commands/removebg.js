@@ -20,7 +20,7 @@ module.exports = {
         }
       } else {
         return sendMessage(senderId, {
-          text: 'Please reply to an image or send an image attachment for background removal.'
+          text: 'Please reply to an image using messenger app for background removal.'
         }, pageAccessToken);
       }
     }
