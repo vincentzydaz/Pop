@@ -1,6 +1,6 @@
 const axios = require("axios");
 const { sendMessage } = require('../handles/sendMessage');
-const { font } = require('../font'); 
+const { font } = require('./font');
 
 module.exports = {
   name: "ai",
@@ -20,11 +20,12 @@ module.exports = {
         params: { prompt: prompt }
       });
 
+      console.log("API Response:", response.data);
       const result = response.data.response;
-      const formattedResult = applyFont(result, font.font1); // Example lang, pwedeng palitan ng ibang font
+      const formattedResult = applyFont(result, font.font1); // Apply font
 
-      if (result.includes('TOOL_CALL: generateImage')) {
-        const imageUrlMatch = result.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
+      if (formattedResult.includes('TOOL_CALL: generateImage')) {
+        const imageUrlMatch = formattedResult.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
         
         if (imageUrlMatch && imageUrlMatch[1]) {
           const imageUrl = imageUrlMatch[1];
@@ -45,6 +46,7 @@ module.exports = {
       }
 
     } catch (error) {
+      console.error("Error:", error);  // Log error
       sendMessage(chilli, { text: "Error while processing your request. Please try again or use gpt4." }, kalamansi);
     }
   }
@@ -57,7 +59,7 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
+      await new Promise(resolve => setTimeout(resolve, 500)); // 0.5-second delay
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
@@ -73,7 +75,7 @@ function splitMessageIntoChunks(message, chunkSize) {
   return chunks;
 }
 
-
-function applyFont(text, fontMap) {
-  return text.split('').map(char => fontMap[char] || char).join('');
+// Function to apply font
+function applyFont(text, fontMapping) {
+  return text.split('').map(char => fontMapping[char] || char).join('');
 }
