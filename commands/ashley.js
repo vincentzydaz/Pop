@@ -3,15 +3,15 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'ashley',
-  description: 'Get a response from Ashley API',
-  usage: '-ashley <your message>',
+  description: 'HORNY AI UGH',
+  usage: 'ashley <your message>',
   author: 'churchill',
   version: '1.0.0',
   async execute(senderId, args, pageAccessToken) {
     const chilli = args.join(' ');
 
     if (!chilli) {
-      return sendMessage(senderId, { text: 'Please provide a prompt, for example: ashley How are you?' }, pageAccessToken);
+      return sendMessage(senderId, { text: 'Please provide a prompt, for example: ashley sarap mo?' }, pageAccessToken);
     }
 
     const typingNotification = await sendMessage(senderId, { text: '⏳ Ashley is typing, please wait...' }, pageAccessToken);
@@ -23,7 +23,7 @@ module.exports = {
       const ashleyResponse = response.data.result || 'No response from Ashley.';
 
       const formattedResponse = 
-`💬 | 𝘼𝙨𝙝𝙡𝙚𝙮'𝙨 𝙍𝙚𝙥𝙡𝙮
+`💬 | 𝘼𝙨𝙝𝙡𝙚𝙮'𝙨 𝙃𝙤𝙧𝙣𝙮 𝘼𝙞
 
 ${ashleyResponse}`;
 
