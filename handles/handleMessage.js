@@ -3,16 +3,12 @@ const path = require('path');
 const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
-const prefix = ''; // Define the prefix
-
+const prefix = '-';
 const commands = new Map();
 
-// Load command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  
-  // Ensure command has a valid "name" property before adding to the map
   if (command.name && typeof command.name === 'string') {
     commands.set(command.name.toLowerCase(), command);
     console.log(`Loaded command: ${command.name}`);
@@ -35,14 +31,12 @@ async function handleMessage(event, pageAccessToken) {
 
     let commandName, args;
     if (messageText.startsWith(prefix)) {
-      // Command starts with the prefix
       const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
+      commandName = argsArray.shift().toLowerCase();
       args = argsArray;
     } else {
-      // Command without a prefix
       const words = messageText.split(' ');
-      commandName = words.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
+      commandName = words.shift().toLowerCase();
       args = words;
     }
 
@@ -57,20 +51,18 @@ async function handleMessage(event, pageAccessToken) {
             imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
           } catch (error) {
             console.error("Failed to get attachment:", error);
-            imageUrl = ''; // Ensure imageUrl is empty if it fails
+            imageUrl = '';
           }
         } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
           imageUrl = event.message.attachments[0].payload.url;
         }
 
-        // Execute the command
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
         console.error(`Error executing command "${commandName}": ${error.message}`, error);
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
-      // If the command is not found, send "Unknown command" message with quick replies
       sendMessage(senderId, {
         text: `Unknown command: "${commandName}". Type "help" for a list of available commands.`,
         quick_replies: [
