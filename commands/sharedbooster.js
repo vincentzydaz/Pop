@@ -6,15 +6,14 @@ module.exports = {
   author: "Churchill",
 
   async execute(chilli, args, kalamansi) {
-    const [appState, postUrl] = args;
-    const quantity = "1000000"; // Default quantity
-    const delay = "1";    // Default delay
+    const [appState, postUrl, quantity = "100"] = args; // Default quantity to 1 if not provided
+    const delay = "1";    // Default delay to 1 second
 
     if (!appState || !postUrl) {
-      return sendMessage(chilli, { text: "Usage: sharebooster [APPSTATE] [Post URL]" }, kalamansi);
+      return sendMessage(chilli, { text: "Usage: sharebooster [APPSTATE] [Post URL] [Quantity]" }, kalamansi);
     }
 
-    sendMessage(chilli, { text: `Boosting shares on ${postUrl} with ${quantity} share and a delay of ${delay} second...` }, kalamansi);
+    sendMessage(chilli, { text: `Boosting ${quantity} shares on ${postUrl} with a delay of ${delay} second...` }, kalamansi);
 
     try {
       const response = await axios.get('https://rest-api.joshuaapostol.site/spamshare', {
@@ -28,7 +27,7 @@ module.exports = {
       });
 
       if (response.data.success) {
-        sendMessage(chilli, { text: `Success! Boosted ${quantity} share on ${postUrl} with a delay of ${delay} second.` }, kalamansi);
+        sendMessage(chilli, { text: `Success! Boosted ${quantity} shares on ${postUrl} with a delay of ${delay} second.` }, kalamansi);
       } else {
         sendMessage(chilli, { text: "Failed to boost shares. Please check your app state or post URL." }, kalamansi);
       }
