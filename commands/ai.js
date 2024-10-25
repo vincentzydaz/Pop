@@ -21,7 +21,7 @@ module.exports = {
       });
 
       const result = response.data.response;
-      const formattedResult = applyFont(result, font.font); // Example lang, pwedeng palitan ng ibang font
+      const formattedResult = applyFont(result, font.font1); // Example lang, pwedeng palitan ng ibang font
 
       if (result.includes('TOOL_CALL: generateImage')) {
         const imageUrlMatch = result.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
@@ -57,7 +57,7 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // 1-second delay
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
