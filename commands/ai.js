@@ -1,6 +1,5 @@
 const axios = require("axios");
 const { sendMessage } = require('../handles/sendMessage');
-const { font } = require('./font');
 
 module.exports = {
   name: "ai",
@@ -20,12 +19,10 @@ module.exports = {
         params: { prompt: prompt }
       });
 
-      console.log("API Response:", response.data);
       const result = response.data.response;
-      const formattedResult = applyFont(result, font.font1); // Apply font
 
-      if (formattedResult.includes('TOOL_CALL: generateImage')) {
-        const imageUrlMatch = formattedResult.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
+      if (result.includes('TOOL_CALL: generateImage')) {
+        const imageUrlMatch = result.match(/\!\[.*?\]\((https:\/\/.*?)\)/);
         
         if (imageUrlMatch && imageUrlMatch[1]) {
           const imageUrl = imageUrlMatch[1];
@@ -39,14 +36,13 @@ module.exports = {
             }
           }, kalamansi);
         } else {
-          await sendConcatenatedMessage(chilli, formattedResult, kalamansi);
+          await sendConcatenatedMessage(chilli, result, kalamansi);
         }
       } else {
-        await sendConcatenatedMessage(chilli, formattedResult, kalamansi);
+        await sendConcatenatedMessage(chilli, result, kalamansi);
       }
 
     } catch (error) {
-      console.error("Error:", error);  // Log error
       sendMessage(chilli, { text: "Error while processing your request. Please try again or use gpt4." }, kalamansi);
     }
   }
@@ -59,7 +55,7 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // 0.5-second delay
+      await new Promise(resolve => setTimeout(resolve, 500)); // 1-second delay
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
@@ -73,9 +69,4 @@ function splitMessageIntoChunks(message, chunkSize) {
     chunks.push(message.slice(i, i + chunkSize));
   }
   return chunks;
-}
-
-// Function to apply font
-function applyFont(text, fontMapping) {
-  return text.split('').map(char => fontMapping[char] || char).join('');
 }
