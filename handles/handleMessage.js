@@ -25,16 +25,10 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    let commandName, args;
-    if (messageText.startsWith(prefix)) {
-      const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift(); // No need to convert to lowercase
-      args = argsArray;
-    } else {
-      const words = messageText.split(' ');
-      commandName = words.shift(); // No need to convert to lowercase
-      args = words;
-    }
+    // Split the message text into the command name and arguments
+    const words = messageText.split(' ');
+    const commandName = words.shift(); // Get the first word as the command name
+    const args = words; // The rest are the arguments
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
