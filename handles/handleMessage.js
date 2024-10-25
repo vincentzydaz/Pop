@@ -4,7 +4,6 @@ const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const prefix = ''; // Define the prefix if necessary
 
 // Load command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
@@ -26,16 +25,9 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    let commandName, args;
-    if (messageText.startsWith(prefix)) {
-      const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift().toLowerCase();
-      args = argsArray;
-    } else {
-      const words = messageText.split(' ');
-      commandName = words.shift().toLowerCase();
-      args = words;
-    }
+    const words = messageText.split(' ');
+    const commandName = (words.shift() || '').toLowerCase(); // Ensure commandName is a string
+    const args = words;
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
