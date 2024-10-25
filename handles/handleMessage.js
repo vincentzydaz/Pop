@@ -5,12 +5,10 @@ const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
 
-// Load all command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  const commandName = command.name.toLowerCase().replace(/^[-]+/, ''); // Remove any leading hyphens
-  commands.set(commandName, command);
+  commands.set(command.name.toLowerCase(), command);
 }
 
 async function handleMessage(event, pageAccessToken) {
@@ -26,7 +24,6 @@ async function handleMessage(event, pageAccessToken) {
     let commandName, args;
     const words = messageText.split(' ');
     commandName = words.shift().toLowerCase();
-    commandName = commandName.replace(/^[-]+/, ''); // Remove any leading hyphens from input
     args = words;
 
     if (commands.has(commandName)) {
