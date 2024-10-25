@@ -10,7 +10,7 @@ module.exports = {
     const kalamansiPrompt = pogi.join(" ");
 
     if (!kalamansiPrompt) {
-      return sendMessage(chilli, { text: `Please provide an image and reply to it using Messenger or ask a question!\n\nExample: gemini what is AI?` }, kalamansi);
+      return sendMessage(chilli, { text: `Please provide an image and replied to it using messenger to analyze or describe etc.. or ask a question!\n\nExample: gemini what is AI?` }, kalamansi);
     }
 
     sendMessage(chilli, { text: "Please wait... 🔎" }, kalamansi);
