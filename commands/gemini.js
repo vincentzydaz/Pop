@@ -10,7 +10,7 @@ module.exports = {
     const kalamansiPrompt = pogi.join(" ");
 
     if (!kalamansiPrompt) {
-      return sendMessage(chilli, { text: `Please provide and image and replied to it using messenger or ask a question!\n\nExample: gemini what is ai?` }, kalamansi);
+      return sendMessage(chilli, { text: `Please provide an image and reply to it using Messenger or ask a question!\n\nExample: gemini what is AI?` }, kalamansi);
     }
 
     sendMessage(chilli, { text: "Please wait... 🔎" }, kalamansi);
@@ -66,10 +66,11 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
-
-    for (let i = 0; i < messages.length; i++) {
+    
+    // Send each message with a 1-second delay
+    for (const message of messages) {
       await new Promise(resolve => setTimeout(resolve, 1000)); // 1-second delay
-      await sendMessage(chilli, { text: messages[i] }, kalamansi);
+      await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
     await sendMessage(chilli, { text }, kalamansi);
@@ -77,6 +78,9 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
 }
 
 function splitMessageIntoChunks(message, chunkSize) {
-  const regex = new RegExp(`.{1,${chunkSize}}`, 'g');
-  return message.match(regex);
+  const chunks = [];
+  for (let i = 0; i < message.length; i += chunkSize) {
+    chunks.push(message.slice(i, i + chunkSize));
+  }
+  return chunks;
 }
