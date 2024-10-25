@@ -27,17 +27,21 @@ module.exports = {
       const { title, artist, lyrics, url, song_thumbnail } = res.data.content;
       const lyricsMessage = `🎵 *${title}* by *${artist}*\n\n${lyrics}\n\n🔗 Read more: ${url}`;
 
-      sendChunkedMessage(senderId, lyricsMessage, pageAccessToken);
+      // Send the lyrics first
+      await sendChunkedMessage(senderId, lyricsMessage, pageAccessToken);
 
+      // Send the image after the lyrics
       if (song_thumbnail) {
-        await sendMessage(senderId, {
-          attachment: {
-            type: "image",
-            payload: {
-              url: song_thumbnail
+        setTimeout(async () => {
+          await sendMessage(senderId, {
+            attachment: {
+              type: "image",
+              payload: {
+                url: song_thumbnail
+              }
             }
-          }
-        }, pageAccessToken);
+          }, pageAccessToken);
+        }, 1000); // Delay sending the image by 1 second to ensure the lyrics go first
       }
 
     } catch (error) {
@@ -51,7 +55,7 @@ module.exports = {
 
 function sendChunkedMessage(senderId, text, pageAccessToken) {
   const maxMessageLength = 2000;
-  const delayBetweenMessages = 1000; // Delay of1 seconds
+  const delayBetweenMessages = 1000; // Delay of 1 second
 
   if (text.length > maxMessageLength) {
     const halfLength = Math.ceil(text.length / 2);
