@@ -1,6 +1,5 @@
 const axios = require('axios');
-const { sendMessage } = require('../handles/sendMessage');
-const FormData = require('form-data');
+const { sendMessage } = require('../handles/sendMessage'); // Ensure sendMessage is correctly imported
 
 module.exports = {
   name: 'fbcover',
@@ -19,37 +18,17 @@ module.exports = {
     const apiUrl = `https://joshweb.click/canvas/fbcover?name=${encodeURIComponent(name)}&subname=${encodeURIComponent(subname)}&sdt=${encodeURIComponent(sdt)}&address=${encodeURIComponent(address)}&email=${encodeURIComponent(email)}&uid=${senderId}&color=${encodeURIComponent(color)}`;
 
     try {
-      // Fetch the image from the API
-      const response = await axios({
-        url: apiUrl,
-        method: 'GET',
-        responseType: 'stream'  // Stream the image to handle the upload properly
-      });
-
-      // Create a form to upload the image
-      const formData = new FormData();
-      formData.append('filedata', response.data, {
-        filename: 'fbcover.png',
-        contentType: 'image/png'
-      });
-
-      const uploadUrl = `https://graph.facebook.com/v15.0/me/messages?access_token=${pageAccessToken}`;
-
-      // Upload the image as an attachment
-      const uploadResponse = await axios.post(uploadUrl, formData, {
-        headers: {
-          ...formData.getHeaders()
-        }
-      });
-
-      // Send the image as an attachment using its ID
-      const attachmentId = uploadResponse.data.attachment_id;
-      await sendMessage(senderId, {
-        attachment: {
-          type: 'image',
-          payload: { attachment_id: attachmentId }
-        }
-      }, pageAccessToken);
+      // Send the image back as a direct URL in the response
+      await sendMessage(
+        senderId, 
+        {
+          attachment: {
+            type: 'image',
+            payload: { url: apiUrl } // Direct image URL from API
+          }
+        }, 
+        pageAccessToken
+      );
 
     } catch (error) {
       console.error('Error creating Facebook cover image:', error.response ? error.response.data : error);
