@@ -5,11 +5,11 @@ const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
 
-// Load command files
+// Load command files without converting command names to lowercase
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  commands.set(command.name.toLowerCase(), command);
+  commands.set(command.name, command);
   console.log(`Loaded command: ${command.name}`);
 }
 
@@ -26,7 +26,7 @@ async function handleMessage(event, pageAccessToken) {
     console.log(`Received message: ${messageText}`);
 
     const words = messageText.split(' ');
-    const commandName = (words.shift() || '').toLowerCase(); // Ensure commandName is a string
+    const commandName = words.shift() || ''; // No need to convert to lowercase
     const args = words;
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
