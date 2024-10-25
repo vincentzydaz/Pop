@@ -3,6 +3,8 @@ const path = require('path');
 const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
+const prefix = ''; // Define the prefix
+
 const commands = new Map();
 
 // Load command files without converting command names to lowercase
@@ -25,10 +27,18 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    // Split the message text into the command name and arguments
-    const words = messageText.split(' ');
-    const commandName = words.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
-    const args = words; // The rest are the arguments
+    let commandName, args;
+    if (messageText.startsWith(prefix)) {
+      // Command starts with the prefix
+      const argsArray = messageText.slice(prefix.length).split(' ');
+      commandName = argsArray.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
+      args = argsArray;
+    } else {
+       
+      const words = messageText.split(' ');
+      commandName = words.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
+      args = words;
+    }
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
