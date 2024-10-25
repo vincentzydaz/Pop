@@ -9,7 +9,7 @@ const commands = new Map();
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  commands.set(command.name, command);
+  commands.set(command.name.toLowerCase(), command); // Store command names in lowercase
   console.log(`Loaded command: ${command.name}`);
 }
 
@@ -27,7 +27,7 @@ async function handleMessage(event, pageAccessToken) {
 
     // Split the message text into the command name and arguments
     const words = messageText.split(' ');
-    const commandName = words.shift(); // Get the first word as the command name
+    const commandName = words.shift().toLowerCase(); // Convert to lowercase for case-insensitive matching
     const args = words; // The rest are the arguments
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
