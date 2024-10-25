@@ -25,9 +25,16 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    const words = messageText.split(' ');
-    const commandName = words.shift() || ''; // No need to convert to lowercase
-    const args = words;
+    let commandName, args;
+    if (messageText.startsWith(prefix)) {
+      const argsArray = messageText.slice(prefix.length).split(' ');
+      commandName = argsArray.shift(); // No need to convert to lowercase
+      args = argsArray;
+    } else {
+      const words = messageText.split(' ');
+      commandName = words.shift(); // No need to convert to lowercase
+      args = words;
+    }
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
