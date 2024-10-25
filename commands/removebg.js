@@ -72,5 +72,3 @@ async function getAttachments(mid, pageAccessToken) {
     throw new Error("Failed to retrieve the image.");
   }
 }
-
-module.exports = { getAttachments };
