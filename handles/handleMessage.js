@@ -6,6 +6,7 @@ const { sendMessage } = require('./sendMessage');
 const prefix = '';
 const commands = new Map();
 
+// Load all command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
@@ -29,46 +30,60 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    // Updated regex patterns for Instagram, Facebook, and TikTok URLs
-    const instagramFacebookRegex = /https?:\/\/(www\.)?(instagram\.com|facebook\.com|fb\.watch)\/[^\s/?#]+\/?/;
-    const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
+    const facebookRegex = /https:\/\/www\.facebook\.com\/\d+\/videos\/\d+/;
+    const tiktokRegex = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
 
-    if (instagramFacebookRegex.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
+    // Facebook video download handler
+    if (facebookRegex.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading your Facebook video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
         const videoUrl = response.data.url;
 
-        await sendMessage(senderId, {
-          attachment: {
-            type: 'video',
-            payload: {
-              url: videoUrl,
-              is_reusable: true
+        // Check if videoUrl is retrieved
+        console.log(`Video URL retrieved: ${videoUrl}`);
+
+        if (videoUrl) {
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'video',
+              payload: {
+                url: videoUrl,
+                is_reusable: true
+              }
             }
-          }
-        }, pageAccessToken);
+          }, pageAccessToken);
+        } else {
+          await sendMessage(senderId, { text: 'Failed to retrieve video URL. Please check the URL and try again.' }, pageAccessToken);
+        }
       } catch (error) {
-        console.error('Error downloading Facebook/Instagram video:', error);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the video. Please try again later.' }, pageAccessToken);
+        console.error('Error downloading Facebook video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
       }
       return;
-    } else if (tiktokRegex.test(messageText)) {
+    }
+
+    // TikTok video download handler
+    if (tiktokRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
         const data = response.data.data;
         const shotiUrl = data.play;
 
-        await sendMessage(senderId, {
-          attachment: {
-            type: 'video',
-            payload: {
-              url: shotiUrl,
-              is_reusable: true
+        if (shotiUrl) {
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'video',
+              payload: {
+                url: shotiUrl,
+                is_reusable: true
+              }
             }
-          }
-        }, pageAccessToken);
+          }, pageAccessToken);
+        } else {
+          await sendMessage(senderId, { text: 'Failed to retrieve TikTok video URL. Please check the URL and try again.' }, pageAccessToken);
+        }
       } catch (error) {
         console.error('Error downloading TikTok video:', error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
@@ -76,6 +91,7 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
+    // Handle text-based commands
     let commandName, args;
     if (messageText.startsWith('-')) {
       const argsArray = messageText.slice(1).trim().split(/\s+/);
