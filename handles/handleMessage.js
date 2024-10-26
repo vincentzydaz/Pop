@@ -56,33 +56,34 @@ async function handleMessage(event, pageAccessToken) {
     }
 
     if (facebookLinkRegex.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading Facebook video, please wait...' }, pageAccessToken);
-      try {
-        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${encodeURIComponent(messageText)}`);
-        const abing = response.data;
+  await sendMessage(senderId, { text: 'Downloading Facebook video, please wait...' }, pageAccessToken);
+  try {
+    const response = await axios.post(`https://betadash-search-download.vercel.app/fbdl`, { url: messageText });
+    const data = response.data;
 
-        if (abing && abing.download_url) {
-          const downloadUrl = abing.download_url;
+    if (data && data.download_url) {
+      const downloadUrl = data.download_url;
 
-          await sendMessage(senderId, {
-            attachment: {
-              type: 'video',
-              payload: {
-                url: downloadUrl,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        } else {
-          console.error('Download URL not found in the API response');
-          await sendMessage(senderId, { text: 'Unable to retrieve the download link. The video might be restricted or the API response format may have changed.' }, pageAccessToken);
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'video',
+          payload: {
+            url: downloadUrl,
+            is_reusable: true
+          }
         }
-      } catch (error) {
-        console.error('Error downloading Facebook video:', error);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
-      }
-      return;
+      }, pageAccessToken);
+    } else {
+      console.error('Download URL not found in the API response');
+      await sendMessage(senderId, { text: 'Unable to retrieve the download link. The video might be restricted or the API response format may have changed.' }, pageAccessToken);
     }
+  } catch (error) {
+    console.error('Error downloading Facebook video:', error);
+    await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
+  }
+  return;
+}
+
 
     let commandName, args;
     if (messageText.startsWith('-')) {
