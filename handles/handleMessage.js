@@ -53,21 +53,19 @@ async function handleMessage(event, pageAccessToken) {
     }
 
     let commandName, args;
-    if (messageText.startsWith(prefix)) {
-      const argsArray = messageText.slice(prefix.length).split(' ');
-      commandName = argsArray.shift().toLowerCase();
-      args = argsArray;
-    } else if (messageText.startsWith('-')) {
-      const argsArray = messageText.slice(1).split(' ');
-      commandName = argsArray.shift().toLowerCase();
-      args = argsArray;
-    } else {
-      const words = messageText.split(' ');
-      commandName = words.shift().toLowerCase();
-      args = words;
-    }
+if (messageText.startsWith('-')) {
+  // Handle commands that start with a hyphen (e.g., -command)
+  const argsArray = messageText.slice(1).trim().split(/\s+/);
+  commandName = argsArray.shift().toLowerCase();
+  args = argsArray;
+} else {
+  // Handle commands without any prefix
+  const words = messageText.trim().split(/\s+/);
+  commandName = words.shift().toLowerCase();
+  args = words;
+}
 
-    console.log(`Parsed command: ${commandName} with arguments: ${args}`);
+console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
