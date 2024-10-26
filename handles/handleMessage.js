@@ -30,10 +30,8 @@ async function handleMessage(event, pageAccessToken) {
     console.log(`Received message: ${messageText}`);
 
     const regEx_tiktok = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
-    const facebookLinkRegex = /https:\/\/www\.facebook\.com\/\S+/;
-
     if (regEx_tiktok.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading TikTok video, please wait...' }, pageAccessToken);
+      await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
         const data = response.data.data;
@@ -55,39 +53,28 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    if (facebookLinkRegex.test(messageText)) {
-  await sendMessage(senderId, { text: 'Downloading Facebook video, please wait...' }, pageAccessToken);
-  try {
-    const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${encodeURIComponent(messageText)}`);
-    const abing = response.data;
+    const regEx_facebook = /https:\/\/www\.facebook\.com\/\d+\/videos\/\d+/;
+    if (regEx_facebook.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading your Facebook video, please wait...' }, pageAccessToken);
+      try {
+        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
+        const videoUrl = response.data.url;
 
-    // Log the entire response to see what's available
-    console.log('Facebook video API response:', abing);
-
-    if (abing && abing.download_url) {
-      const downloadUrl = abing.download_url;
-
-      await sendMessage(senderId, {
-        attachment: {
-          type: 'video',
-          payload: {
-            url: downloadUrl,
-            is_reusable: true
+        await sendMessage(senderId, {
+          attachment: {
+            type: 'video',
+            payload: {
+              url: videoUrl,
+              is_reusable: true
+            }
           }
-        }
-      }, pageAccessToken);
-    } else {
-      console.error('Download URL not found in the API response');
-      await sendMessage(senderId, { text: 'Unable to retrieve the download link. The video might be restricted or the API response format may have changed.' }, pageAccessToken);
+        }, pageAccessToken);
+      } catch (error) {
+        console.error('Error downloading Facebook video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
+      }
+      return;
     }
-  } catch (error) {
-    console.error('Error downloading Facebook video:', error);
-    await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
-  }
-  return;
-}
-
-
 
     let commandName, args;
     if (messageText.startsWith('-')) {
