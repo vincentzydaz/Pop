@@ -30,7 +30,10 @@ async function handleMessage(event, pageAccessToken) {
     console.log(`Received message: ${messageText}`);
 
     const regEx_tiktok = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
+    const facebookLinkRegex = /https:\/\/www\.facebook\.com\/\S+/;
+
     if (regEx_tiktok.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading TikTok video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
         const data = response.data.data;
@@ -52,20 +55,46 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    let commandName, args;
-if (messageText.startsWith('-')) {
-  // Handle commands that start with a hyphen (e.g., -command)
-  const argsArray = messageText.slice(1).trim().split(/\s+/);
-  commandName = argsArray.shift().toLowerCase();
-  args = argsArray;
-} else {
-  // Handle commands without any prefix
-  const words = messageText.trim().split(/\s+/);
-  commandName = words.shift().toLowerCase();
-  args = words;
-}
+    if (facebookLinkRegex.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading Facebook video, please wait...' }, pageAccessToken);
+      try {
+        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${encodeURIComponent(messageText)}`);
+        const abing = response.data;
 
-console.log(`Parsed command: ${commandName} with arguments: ${args}`);
+        if (abing && abing.download_url) {
+          const downloadUrl = abing.download_url;
+
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'video',
+              payload: {
+                url: downloadUrl,
+                is_reusable: true
+              }
+            }
+          }, pageAccessToken);
+        } else {
+          throw new Error('Download URL not found in the API response');
+        }
+      } catch (error) {
+        console.error('Error downloading Facebook video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
+      }
+      return;
+    }
+
+    let commandName, args;
+    if (messageText.startsWith('-')) {
+      const argsArray = messageText.slice(1).trim().split(/\s+/);
+      commandName = argsArray.shift().toLowerCase();
+      args = argsArray;
+    } else {
+      const words = messageText.trim().split(/\s+/);
+      commandName = words.shift().toLowerCase();
+      args = words;
+    }
+
+    console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
