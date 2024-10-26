@@ -6,6 +6,7 @@ const { sendMessage } = require('./sendMessage');
 const prefix = '';
 const commands = new Map();
 
+// Load command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
@@ -29,6 +30,31 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
+    // Auto-download TikTok video if link is detected
+    const regEx_tiktok = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
+    if (regEx_tiktok.test(messageText)) {
+      try {
+        const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
+        const data = response.data.data;
+        const shotiUrl = data.play;
+
+        await sendMessage(senderId, {
+          attachment: {
+            type: 'video',
+            payload: {
+              url: shotiUrl,
+              is_reusable: true
+            }
+          }
+        }, pageAccessToken);
+      } catch (error) {
+        console.error('Error downloading TikTok video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
+      }
+      return;
+    }
+
+    // Parse command if prefix is detected
     let commandName, args;
     if (messageText.startsWith(prefix)) {
       const argsArray = messageText.slice(prefix.length).split(' ');
