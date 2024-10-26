@@ -5,7 +5,7 @@ module.exports = {
   description: 'Rules for using the page bot',
   usage: 'privacy',
   author: 'cliff',
-  async execute(senderId, args, pageAccessToken, sendMessage) {
+  async execute(senderId, args, pageAccessToken) {
     const termsAndConditions = `𝗧𝗘𝗥𝗠𝗦 𝗢𝗙 𝗦𝗘𝗥𝗩𝗜𝗖𝗘 & 𝗣𝗥𝗜𝗩𝗔𝗖𝗬 𝗣𝗢𝗟𝗜𝗖𝗬
 
 By using this bot, you agree to:
@@ -33,6 +33,6 @@ Failure to comply may result in access restrictions.`;
         }
       }
     };
-    sendMessage(senderId, kupal, pageAccessToken);
+    await sendMessage(senderId, kupal, pageAccessToken);
   }
 };
