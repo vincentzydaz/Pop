@@ -30,12 +30,12 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    const facebookRegex = /https:\/\/www\.facebook\.com\/\S+/;
-    const tiktokRegex = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
+    const instagramFacebookRegex = /https?:\/\/(www\.)?(instagram\.com|facebook\.com|fb\.watch)\/[^\s/?#]+\/?/;
+    const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
 
-    // Facebook video download handler
-    if (facebookRegex.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading your Facebook video, please wait...' }, pageAccessToken);
+    // Handle Instagram/Facebook video URLs
+    if (instagramFacebookRegex.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
         const videoUrl = response.data.url;
@@ -57,13 +57,13 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'Failed to retrieve video URL. Please check the URL and try again.' }, pageAccessToken);
         }
       } catch (error) {
-        console.error('Error downloading Facebook video:', error);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
+        console.error('Error downloading Facebook/Instagram video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook/Instagram video. Please try again later.' }, pageAccessToken);
       }
       return;
     }
 
-    // TikTok video download handler
+    // Handle TikTok video URLs
     if (tiktokRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
