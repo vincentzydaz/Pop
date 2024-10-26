@@ -13,13 +13,11 @@ const handlePostback = (event, pageAccessToken) => {
             content_type: "text",
             title: "Help",
             payload: "HELP_PAYLOAD"  // Ensure this payload matches your case structure in the bot
-          }
-        ],
-        buttons: [
+          },
           {
-            type: "web_url",
-            url: "https://www.facebook.com/Churchill.Dev4100", // Link to the developer's Facebook profile
-            title: "Contact Developer"
+            content_type: "text",
+            title: "Privacy",
+            payload: "PRIVACY_PAYLOAD"  // Define this payload to handle privacy inquiries
           }
         ]
       };
