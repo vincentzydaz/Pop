@@ -67,9 +67,9 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
     
-    // Send each message with a 1-second delay
+
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // 1-second delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
