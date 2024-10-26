@@ -6,7 +6,6 @@ const { sendMessage } = require('./sendMessage');
 const prefix = '';
 const commands = new Map();
 
-// Load command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
@@ -30,7 +29,6 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    // Auto-download TikTok video if link is detected
     const regEx_tiktok = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
     if (regEx_tiktok.test(messageText)) {
       try {
@@ -54,10 +52,13 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    // Parse command if prefix is detected
     let commandName, args;
     if (messageText.startsWith(prefix)) {
       const argsArray = messageText.slice(prefix.length).split(' ');
+      commandName = argsArray.shift().toLowerCase();
+      args = argsArray;
+    } else if (messageText.startsWith('-')) {
+      const argsArray = messageText.slice(1).split(' ');
       commandName = argsArray.shift().toLowerCase();
       args = argsArray;
     } else {
