@@ -30,7 +30,7 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    const facebookRegex = /https:\/\/www\.facebook\.com\/\d+\/videos\/\d+/;
+    const facebookRegex = /https:\/\/www\.facebook\.com\/\S+/;
     const tiktokRegex = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
 
     // Facebook video download handler
