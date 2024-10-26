@@ -96,28 +96,50 @@ async function handleMessage(event, pageAccessToken) {
 
     console.log(`Parsed command: ${commandName} with arguments: ${args}`);
 
+    if (commandName === 'gemini' || commandName === 'imgur') {
+      let imageUrl = '';
+
+      // Check for attachments in the current message
+      if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
+        imageUrl = event.message.attachments[0].payload.url;
+      } 
+      // Check for images in a replied message
+      else if (event.message.reply_to && event.message.reply_to.mid) {
+        try {
+          imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
+        } catch (error) {
+          console.error("Failed to get attachment:", error);
+        }
+      }
+
+      const command = commands.get(commandName);
+      if (command) {
+        try {
+          if (imageUrl) {
+            await command.execute(senderId, args, pageAccessToken, imageUrl);
+          } else if (commandName === 'imgur') {
+            await sendMessage(senderId, { text: 'Please send an image first and then use the "imgur" command.' }, pageAccessToken);
+          } else {
+            await command.execute(senderId, args, pageAccessToken);
+          }
+        } catch (error) {
+          console.error(`Error executing command "${commandName}": ${error.message}`, error);
+          await sendMessage(senderId, { text: `An error occurred while processing your command.` }, pageAccessToken);
+        }
+      }
+      return;
+    }
+
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
       try {
-        let imageUrl = '';
-        if (event.message.reply_to && event.message.reply_to.mid) {
-          try {
-            imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
-          } catch (error) {
-            console.error("Failed to get attachment:", error);
-            imageUrl = '';
-          }
-        } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
-          imageUrl = event.message.attachments[0].payload.url;
-        }
-
-        await command.execute(senderId, args, pageAccessToken, event, imageUrl);
+        await command.execute(senderId, args, pageAccessToken, event);
       } catch (error) {
         console.error(`Error executing command "${commandName}": ${error.message}`, error);
-        sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
+        await sendMessage(senderId, { text: 'There was an error executing that command.' }, pageAccessToken);
       }
     } else {
-      sendMessage(senderId, {
+      await sendMessage(senderId, {
         text: `Unknown command: "${commandName}". Type "help" for a list of available commands.`,
         quick_replies: [
           {
