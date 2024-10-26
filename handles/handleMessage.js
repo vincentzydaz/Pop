@@ -38,17 +38,19 @@ async function handleMessage(event, pageAccessToken) {
       await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
-        const videoUrl = response.data.url;
+        const videoUrl = response.data.data;
+        const kupal = data.play;
+
 
         // Check if videoUrl is retrieved
         console.log(`Video URL retrieved: ${videoUrl}`);
 
-        if (videoUrl) {
+        if (kupal) {
           await sendMessage(senderId, {
             attachment: {
               type: 'video',
               payload: {
-                url: videoUrl,
+                url: kupal,
                 is_reusable: true
               }
             }
