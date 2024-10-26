@@ -3,24 +3,18 @@ const path = require('path');
 const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
-const prefix = '';
 const commands = new Map();
-
-// Load all command files
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
+
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
   if (command.name && typeof command.name === 'string') {
     commands.set(command.name.toLowerCase(), command);
-    console.log(`Loaded command: ${command.name}`);
-  } else {
-    console.warn(`Command file "${file}" is missing a valid "name" property.`);
   }
 }
 
 async function handleMessage(event, pageAccessToken) {
   if (!event || !event.sender || !event.sender.id) {
-    console.error('Invalid event object');
     return;
   }
 
@@ -28,20 +22,14 @@ async function handleMessage(event, pageAccessToken) {
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
-    console.log(`Received message: ${messageText}`);
-
     const instagramFacebookRegex = /https?:\/\/(www\.)?(instagram\.com|facebook\.com|fb\.watch)\/[^\s/?#]+\/?/;
     const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
 
-    // Handle Instagram/Facebook video URLs
     if (instagramFacebookRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
-        const videoUrl = response.data.data.play;  // Correct reference here
-
-        // Check if videoUrl is retrieved
-        console.log(`Video URL retrieved: ${videoUrl}`);
+        const videoUrl = response?.data?.data?.play || response?.data?.data?.url;
 
         if (videoUrl) {
           await sendMessage(senderId, {
@@ -57,13 +45,11 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'Failed to retrieve video URL. Please check the URL and try again.' }, pageAccessToken);
         }
       } catch (error) {
-        console.error('Error downloading Facebook/Instagram video:', error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook/Instagram video. Please try again later.' }, pageAccessToken);
       }
       return;
     }
 
-    // Handle TikTok video URLs
     if (tiktokRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
@@ -85,13 +71,11 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'Failed to retrieve TikTok video URL. Please check the URL and try again.' }, pageAccessToken);
         }
       } catch (error) {
-        console.error('Error downloading TikTok video:', error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
       }
       return;
     }
 
-    // Handle text-based commands
     let commandName, args;
     if (messageText.startsWith('-')) {
       const argsArray = messageText.slice(1).trim().split(/\s+/);
@@ -103,8 +87,6 @@ async function handleMessage(event, pageAccessToken) {
       args = words;
     }
 
-    console.log(`Parsed command: ${commandName} with arguments: ${args}`);
-
     if (commands.has(commandName)) {
       const command = commands.get(commandName);
       try {
@@ -113,7 +95,6 @@ async function handleMessage(event, pageAccessToken) {
           try {
             imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
           } catch (error) {
-            console.error("Failed to get attachment:", error);
             imageUrl = '';
           }
         } else if (event.message.attachments && event.message.attachments[0]?.type === 'image') {
@@ -122,7 +103,6 @@ async function handleMessage(event, pageAccessToken) {
 
         await command.execute(senderId, args, pageAccessToken, event, imageUrl);
       } catch (error) {
-        console.error(`Error executing command "${commandName}": ${error.message}`, error);
         sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
       }
     } else {
@@ -137,14 +117,11 @@ async function handleMessage(event, pageAccessToken) {
         ]
       }, pageAccessToken);
     }
-  } else {
-    console.error('Message or text is not present in the event.');
   }
 }
 
 async function getAttachments(mid, pageAccessToken) {
   if (!mid) {
-    console.error("No message ID provided for getAttachments.");
     throw new Error("No message ID provided.");
   }
 
@@ -156,11 +133,9 @@ async function getAttachments(mid, pageAccessToken) {
     if (data && data.data.length > 0 && data.data[0].image_data) {
       return data.data[0].image_data.url;
     } else {
-      console.error("No image found in the replied message.");
       throw new Error("No image found in the replied message.");
     }
   } catch (error) {
-    console.error("Error fetching attachments:", error);
     throw new Error("Failed to fetch attachments.");
   }
 }
