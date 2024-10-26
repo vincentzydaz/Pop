@@ -58,11 +58,14 @@ async function handleMessage(event, pageAccessToken) {
     if (facebookLinkRegex.test(messageText)) {
   await sendMessage(senderId, { text: 'Downloading Facebook video, please wait...' }, pageAccessToken);
   try {
-    const response = await axios.post(`https://betadash-search-download.vercel.app/fbdl`, { url: messageText });
-    const data = response.data;
+    const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${encodeURIComponent(messageText)}`);
+    const abing = response.data;
 
-    if (data && data.download_url) {
-      const downloadUrl = data.download_url;
+    // Log the entire response to see what's available
+    console.log('Facebook video API response:', abing);
+
+    if (abing && abing.download_url) {
+      const downloadUrl = abing.download_url;
 
       await sendMessage(senderId, {
         attachment: {
@@ -83,6 +86,7 @@ async function handleMessage(event, pageAccessToken) {
   }
   return;
 }
+
 
 
     let commandName, args;
