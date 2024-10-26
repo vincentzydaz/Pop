@@ -74,7 +74,8 @@ async function handleMessage(event, pageAccessToken) {
             }
           }, pageAccessToken);
         } else {
-          throw new Error('Download URL not found in the API response');
+          console.error('Download URL not found in the API response');
+          await sendMessage(senderId, { text: 'Unable to retrieve the download link. The video might be restricted or the API response format may have changed.' }, pageAccessToken);
         }
       } catch (error) {
         console.error('Error downloading Facebook video:', error);
