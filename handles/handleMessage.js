@@ -29,8 +29,31 @@ async function handleMessage(event, pageAccessToken) {
     const messageText = event.message.text.trim();
     console.log(`Received message: ${messageText}`);
 
-    const regEx_tiktok = /https:\/\/(www\.|vt\.)?tiktok\.com\//;
-    if (regEx_tiktok.test(messageText)) {
+    // Updated regex patterns for Instagram, Facebook, and TikTok URLs
+    const instagramFacebookRegex = /https?:\/\/(www\.)?(instagram\.com|facebook\.com|fb\.watch)\/[^\s/?#]+\/?/;
+    const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
+
+    if (instagramFacebookRegex.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
+      try {
+        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
+        const videoUrl = response.data.url;
+
+        await sendMessage(senderId, {
+          attachment: {
+            type: 'video',
+            payload: {
+              url: videoUrl,
+              is_reusable: true
+            }
+          }
+        }, pageAccessToken);
+      } catch (error) {
+        console.error('Error downloading Facebook/Instagram video:', error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the video. Please try again later.' }, pageAccessToken);
+      }
+      return;
+    } else if (tiktokRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
@@ -49,29 +72,6 @@ async function handleMessage(event, pageAccessToken) {
       } catch (error) {
         console.error('Error downloading TikTok video:', error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
-      }
-      return;
-    }
-
-    const regEx_facebook = /https:\/\/www\.facebook\.com\/\d+\/videos\/\d+/;
-    if (regEx_facebook.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading your Facebook video, please wait...' }, pageAccessToken);
-      try {
-        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
-        const videoUrl = response.data.url;
-
-        await sendMessage(senderId, {
-          attachment: {
-            type: 'video',
-            payload: {
-              url: videoUrl,
-              is_reusable: true
-            }
-          }
-        }, pageAccessToken);
-      } catch (error) {
-        console.error('Error downloading Facebook video:', error);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
       }
       return;
     }
