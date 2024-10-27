@@ -71,15 +71,22 @@ module.exports = {
     // Step 3: Send result back to user if successful, otherwise send error message
     if (success) {
       console.log("Sending upscaled image back to user...");
-      await sendMessage(chilli, {
-        attachment: {
-          type: 'image',
-          payload: {
-            url: chilliUpscaledImageUrl
+      try {
+        await sendMessage(chilli, {
+          attachment: {
+            type: 'image',
+            payload: {
+              url: chilliUpscaledImageUrl
+            }
           }
-        }
-      }, pageAccessToken);
-      console.log("Image sent successfully.");
+        }, pageAccessToken);
+        console.log("Image sent successfully.");
+      } catch (error) {
+        console.error("Failed to send upscaled image:", error);
+        await sendMessage(chilli, {
+          text: 'An error occurred while sending the enhanced image. Please try again later.'
+        }, pageAccessToken);
+      }
     } else {
       console.log("Sending failure notification to user...");
       await sendMessage(chilli, {
@@ -88,6 +95,24 @@ module.exports = {
     }
   }
 };
+
+// Updated sendMessage function to include additional logging
+async function sendMessage(chilli, messageData, pageAccessToken) {
+  console.log("Preparing to send message with data:", messageData);
+  
+  try {
+    const response = await axios.post(`https://graph.facebook.com/v12.0/me/messages`, {
+      recipient: { id: chilli.senderId },
+      message: messageData
+    }, {
+      headers: { Authorization: `Bearer ${pageAccessToken}` }
+    });
+    console.log("Message sent, response from Messenger API:", response.data);
+  } catch (error) {
+    console.error("Error sending message to Messenger API:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+}
 
 // Helper function to get the image URL from a reply message
 async function getAttachments(mid, pageAccessToken) {
