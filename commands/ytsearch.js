@@ -1,49 +1,63 @@
 const axios = require('axios');
+const fs = require('fs');
 const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'ytsearch',
-  description: 'Search for a YouTube video by title and retrieve its details, then send a watch button.',
+  description: 'Search YouTube for videos and send the video as an attachment.',
   author: 'chilli',
 
-  async execute(senderId, args, pageAccessToken) {
+  async execute(chilli, args, pageAccessToken) {
     const query = args.join(' ');
     if (!query) {
-      return sendMessage(senderId, {
-        text: 'Please provide a search term to find a YouTube video.'
+      return sendMessage(chilli, {
+        text: 'Please provide a search term for the video.'
       }, pageAccessToken);
     }
 
     try {
-      // Notify the user that the search is being performed
-      await sendMessage(senderId, { text: `Searching for "${query}" on YouTube... 🔍` }, pageAccessToken);
+      await sendMessage(chilli, { text: `Searching for "${query}" on YouTube...` }, pageAccessToken);
 
-      // Call the YouTube search API with the query
+      // Search YouTube video using API
       const response = await axios.get(`https://kaiz-ytdlsearch-api.vercel.app/yts?q=${encodeURIComponent(query)}`);
-      const videoData = response.data;
+      const video = response.data;
 
-      // Construct the message with video details and link
-      await sendMessage(senderId, {
+      // Download the video file
+      const videoStream = await axios({
+        url: video.url,   // Video URL from API
+        method: 'GET',
+        responseType: 'stream'
+      });
+
+      const videoPath = `./temp_video.mp4`;  // Temporary file path
+
+      // Save the video stream to a local file
+      const writer = fs.createWriteStream(videoPath);
+      videoStream.data.pipe(writer);
+
+      await new Promise((resolve, reject) => {
+        writer.on('finish', resolve);
+        writer.on('error', reject);
+      });
+
+      // Send video file as attachment to Facebook Messenger
+      await sendMessage(chilli, {
         attachment: {
-          type: 'template',
+          type: 'video',   // Specify attachment type as video
           payload: {
-            template_type: 'button',
-            text: `🎬 *${videoData.title}*\n\n👤 Author: ${videoData.author}\n👁️ Views: ${videoData.views.toLocaleString()}\n⏱️ Duration: ${videoData.duration}\n📅 Uploaded: ${videoData.uploaded}\n\n📝 Description: ${videoData.description}`,
-            buttons: [
-              {
-                type: 'web_url',
-                url: videoData.url,
-                title: 'Watch Video'
-              }
-            ]
+            is_reusable: true  // Optional: make the video reusable
           }
-        }
+        },
+        filedata: fs.createReadStream(videoPath) // Attach the video file
       }, pageAccessToken);
 
-    } catch (error) {
-      console.error('Error fetching video details:', error);
-      await sendMessage(senderId, {
-        text: 'An error occurred while searching for the video. Please try again later.'
+      // Cleanup: delete the local video file
+      fs.unlinkSync(videoPath);
+
+    } catch (err) {
+      console.error('Error fetching or sending video:', err);
+      await sendMessage(chilli, {
+        text: 'There was an issue retrieving or sending the video. Please try again later.'
       }, pageAccessToken);
     }
   }
