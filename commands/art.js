@@ -2,37 +2,38 @@ const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
-  name: 'flux',
-  description: 'Generate an image based on a query using the Flux API.',
+  name: 'art',
+  description: 'Generate an image based on a prompt using the JoshWeb API.',
+  usage: 'art <prompt>\nExample: art dog',
   author: 'chilli',
-  usage: 'flux <query>',
-
   async execute(senderId, args, pageAccessToken) {
-    const query = args.join(' ');
-    if (!query) {
-      return sendMessage(senderId, { text: 'Usage: flux <query>\nExample: flux cat' }, pageAccessToken);
+    if (!args || args.length === 0) {
+      await sendMessage(senderId, {
+        text: 'Please provide a prompt to generate an image.\n\nUsage:\n art <prompt>\nExample: art dog'
+      }, pageAccessToken);
+      return;
     }
+
+    const prompt = args.join(' ');
+    const apiUrl = `https://joshweb.click/api/art?prompt=${encodeURIComponent(prompt)}`;
 
     await sendMessage(senderId, { text: 'Generating image... Please wait.' }, pageAccessToken);
 
     try {
-      const { data: fluxResponse } = await axios.get(`https://nethwieginedev.vercel.app/flux?q=${encodeURIComponent(query)}`);
-      
-      if (fluxResponse && fluxResponse.image_url) {
-        await sendMessage(senderId, {
-          attachment: {
-            type: 'image',
-            payload: {
-              url: fluxResponse.image_url
-            }
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'image',
+          payload: {
+            url: apiUrl
           }
-        }, pageAccessToken);
-      } else {
-        await sendMessage(senderId, { text: 'Failed to retrieve an image. Please try again.' }, pageAccessToken);
-      }
+        }
+      }, pageAccessToken);
+
     } catch (error) {
-      console.error('Error fetching image from Flux API:', error);
-      await sendMessage(senderId, { text: 'An error occurred while generating the image. Please try again.' }, pageAccessToken);
+      console.error('Error generating image:', error);
+      await sendMessage(senderId, {
+        text: 'An error occurred while generating the image. Please try again later.'
+      }, pageAccessToken);
     }
   }
 };
