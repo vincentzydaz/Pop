@@ -11,7 +11,18 @@ module.exports = {
 
     if (imageUrl) {
       imageLink = imageUrl;
+    } else if (event.message.attachments && event.message.attachments.length > 0) {
+      // Check for an attachment in the current message
+      const attachment = event.message.attachments[0];
+      if (attachment.type === 'image' && attachment.payload && attachment.payload.url) {
+        imageLink = attachment.payload.url;
+      } else {
+        return sendMessage(senderId, {
+          text: 'No valid image attachment found. Please attach an image or reply to one.'
+        }, pageAccessToken);
+      }
     } else if (event.message.reply_to && event.message.reply_to.mid) {
+      // Fallback to checking if it's a reply to a message with an image
       try {
         imageLink = await getAttachments(event.message.reply_to.mid, pageAccessToken);
       } catch (error) {
@@ -21,7 +32,7 @@ module.exports = {
       }
     } else {
       return sendMessage(senderId, {
-        text: 'No attachment detected. Please reply to an image.'
+        text: 'No image found. Please attach or reply to an image.'
       }, pageAccessToken);
     }
 
