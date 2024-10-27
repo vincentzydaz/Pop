@@ -7,11 +7,9 @@ module.exports = {
   author: 'chilli',
 
   async execute(senderId, args, pageAccessToken, event, imageUrl) {
-    // Check if there is no image URL provided and handle it
     if (!imageUrl) {
       if (event.message.reply_to && event.message.reply_to.mid) {
         try {
-          // Get the image URL from the replied message's attachment
           imageUrl = await getAttachments(event.message.reply_to.mid, pageAccessToken);
         } catch (error) {
           return sendMessage(senderId, {
@@ -20,19 +18,22 @@ module.exports = {
         }
       } else {
         return sendMessage(senderId, {
-          text: 'Please reply to an image using messenger app for background removal.'
+          text: `Usage Instructions:
+To use the "removebg" command, you need to:
+1. Reply to an image using **Messenger** (since Facebook Lite does not support reply features for page bots).
+2. Type "removebg" as a reply to the image to remove its background.
+
+Example:
+- Reply to an image with the message: removebg`
         }, pageAccessToken);
       }
     }
 
-    // Notify the user that the bot is processing the image
     await sendMessage(senderId, { text: 'Processing the image, please wait... 🖼️' }, pageAccessToken);
 
     try {
-      // Call the RemoveBG API with the retrieved image URL
       const removeBgUrl = `https://appjonellccapis.zapto.org/api/removebg?url=${encodeURIComponent(imageUrl)}`;
 
-      // Send the processed image back to the user
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
@@ -51,7 +52,6 @@ module.exports = {
   }
 };
 
-// Get attachment function using Facebook Graph API
 async function getAttachments(mid, pageAccessToken) {
   if (!mid) {
     throw new Error("No message ID provided.");
