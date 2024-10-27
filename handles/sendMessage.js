@@ -9,6 +9,16 @@ async function typingIndicator(senderId, pageAccessToken) {
     }, {
       params: { access_token: pageAccessToken },
     });
+
+    // Add delay here if needed to simulate typing
+    await new Promise(resolve => setTimeout(resolve, 1000)); // Adjust delay as necessary
+
+    await axios.post(`https://graph.facebook.com/v13.0/me/messages`, {
+      recipient: { id: senderId },
+      sender_action: 'typing_off',
+    }, {
+      params: { access_token: pageAccessToken },
+    });
   } catch (error) {
     console.error('Error sending typing indicator:', error.message);
   }
