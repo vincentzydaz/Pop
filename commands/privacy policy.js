@@ -1,7 +1,7 @@
 const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
-  name: 'privacy',
+  name: 'privacy policy',
   description: 'Rules for using the page bot',
   usage: 'privacy',
   author: 'cliff',
