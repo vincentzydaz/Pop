@@ -29,7 +29,7 @@ Example:
       }
     }
 
-    await sendMessage(senderId, { text: 'Processing the image, please wait... 🖼️' }, pageAccessToken);
+    await sendMessage(senderId, { text: 'Removing bg in the image, please wait... 🖼️' }, pageAccessToken);
 
     try {
       const removeBgUrl = `https://appjonellccapis.zapto.org/api/removebg?url=${encodeURIComponent(imageUrl)}`;
