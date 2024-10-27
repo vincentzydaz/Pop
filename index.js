@@ -85,7 +85,7 @@ async function loadBot() {
       process_.on("close", (exitCode) => {
         if (exitCode === 1) {
           console.log("Restarting bot...");
-          loadBot(); // Restart the bot
+          loadBot(); // Restart the bot only when the command is executed
         } else {
           console.log(`Bot stopped with code ${exitCode}`);
         }
@@ -101,6 +101,7 @@ async function loadBot() {
   executeBot("node", [SCRIPT_PATH]).catch(console.error);
 }
 
+// Only call loadBot() when the server starts
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
