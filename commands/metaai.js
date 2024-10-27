@@ -32,14 +32,10 @@ module.exports = {
       const question = args.join(" ");
       const waitingMessage = await sendMessage(senderId, { text: `Meta AI answering: ${question}` }, pageAccessToken);
 
-      const response = await axios.get(`https://echavie3.nethprojects.workers.dev/ai`, {
-        params: {
-          model: "@cf/meta/llama-3.2-3b-instruct",
-          q: question
-        }
-      });
+      const apiUrl = `https://echavie3.nethprojects.workers.dev/ai?model=@cf/meta/llama-3.2-3b-instruct&q=${encodeURIComponent(question)}`;
+      const response = await axios.get(apiUrl);
 
-      if (response.data.success) {
+      if (response.data && response.data.success) {
         const answer = response.data.result;
         const gothicAnswer = convertToGothic(answer);
         await sendConcatenatedMessage(senderId, gothicAnswer, pageAccessToken);
