@@ -5,22 +5,28 @@ const fs = require("fs");
 module.exports = {
     name: "music",
     description: "Play and Download music",
-    author: "deku",
+    author: "chilli",
 
-    async execute(bundas, yakzy, kupalboss) {
+    async execute(senderId, args, pageAccessToken) {
         try {
             const { spotify, spotifydl } = require("betabotz-tools");
-            const q = yakzy.join(" ");
+            const q = args.join(" ");
             if (!q) {
-                return sendMessage(bundas, { text: "[ ! ] Please input a music title..." }, kupalboss);
+                return await sendMessage(senderId, { text: "[ ? ] Please input a music title..." }, pageAccessToken);
             }
 
-            await sendMessage(bundas, { text: "🔍 Searching for the music: " + q + "..." }, kupalboss);
+            await sendMessage(senderId, { text: "🔍 Searching for the music: " + q + "..." }, pageAccessToken);
 
             const lyricsResponse = await axios.get(`https://lyrist.vercel.app/api/${encodeURIComponent(q)}`);
             const { lyrics, title } = lyricsResponse.data;
 
             const results = await spotify(encodeURI(q));
+            console.log("Spotify Results:", results); // Debugging line
+
+            if (!results.result || !results.result.data || results.result.data.length === 0) {
+                return await sendMessage(senderId, { text: "[ ! ] No results found for the specified title." }, pageAccessToken);
+            }
+
             const url = results.result.data[0].url;
             const result1 = await spotifydl(url);
 
@@ -29,7 +35,7 @@ module.exports = {
             ).data;
             fs.writeFileSync(path, Buffer.from(dl, "utf-8"));
 
-            await sendMessage(bundas, {
+            await sendMessage(senderId, {
                 attachment: {
                     type: "audio",
                     payload: {
@@ -37,23 +43,23 @@ module.exports = {
                         url: result1.result
                     }
                 }
-            }, kupalboss);
+            }, pageAccessToken);
 
             fs.unlinkSync(path);
 
         } catch (error) {
             console.error("Error occurred:", error);
-            return sendMessage(bundas, { text: `Error: ${error.message}` }, kupalboss);
+            await sendMessage(senderId, { text: `Error: ${error.message}` }, pageAccessToken);
         }
     }
 };
 
-async function sendMessage(bundas, message, kupalboss) {
+async function sendMessage(senderId, message, pageAccessToken) {
     try {
         await axios.post(
-            `https://graph.facebook.com/v11.0/me/messages?access_token=${kupalboss}`,
+            `https://graph.facebook.com/v11.0/me/messages?access_token=${pageAccessToken}`,
             {
-                recipient: { id: bundas },
+                recipient: { id: senderId },
                 message: message
             }
         );
@@ -62,7 +68,7 @@ async function sendMessage(bundas, message, kupalboss) {
     }
 }
 
-async function sendConcatenatedMessage(bundas, text, kupalboss) {
+async function sendConcatenatedMessage(senderId, text, pageAccessToken) {
     const maxMessageLength = 2000;
 
     if (text.length > maxMessageLength) {
@@ -70,10 +76,10 @@ async function sendConcatenatedMessage(bundas, text, kupalboss) {
 
         for (const message of messages) {
             await new Promise(resolve => setTimeout(resolve, 500));
-            await sendMessage(bundas, { text: message }, kupalboss);
+            await sendMessage(senderId, { text: message }, pageAccessToken);
         }
     } else {
-        await sendMessage(bundas, { text }, kupalboss);
+        await sendMessage(senderId, { text }, pageAccessToken);
     }
 }
 
