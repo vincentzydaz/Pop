@@ -15,7 +15,7 @@ module.exports = {
     }
 
     const prompt = args.join(' ');
-    const apiUrl = `https://nethwieginedev.vercel.app/flux?q=${encodeURIComponent(prompt)}`;
+    const apiUrl = `https://echavie3.nethprojects.workers.dev/flux?q=${encodeURIComponent(prompt)}`;
 
     await sendMessage(senderId, { text: 'Generating image... Please wait.' }, pageAccessToken);
 
