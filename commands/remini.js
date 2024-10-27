@@ -18,12 +18,12 @@ module.exports = {
         }
       } else {
         return sendMessage(chilli, {
-          text: 'Usage: To upscale an image, please reply to the image attachment with the command "remini". Note: This feature requires using Messenger, as Facebook Lite does not support reply functionality in page bots.'
+          text: 'Usage: To enhance an image, please reply to the image attachment with the command "remini". Note: This feature requires using Messenger, as Facebook Lite does not support reply functionality in page bots.'
         }, pageAccessToken);
       }
     }
 
-    await sendMessage(chilli, { text: 'Upscaling the image, please wait... 🖼️' }, pageAccessToken);
+    await sendMessage(chilli, { text: 'Enhancing the image, please wait... 🖼️' }, pageAccessToken);
 
     try {
       const reminiApiUrl = `https://ccprojectapis.ddns.net/api/upscale?url=${encodeURIComponent(chilliImageUrl)}&model=1`;
