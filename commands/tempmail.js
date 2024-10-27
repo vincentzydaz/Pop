@@ -15,22 +15,19 @@ module.exports = {
       
       const tempEmail = createResponse.address;
 
-      await sendMessage(kupal, { text: `Temporary email created: ${tempEmail}\nUse this email to receive the confirmation code.` }, chilli);
+      await sendMessage(kupal, { text: tempEmail }, chilli);
 
       const checkInterval = setInterval(async () => {
         try {
           const { data: checkResponse } = await axios.get(`https://nethwieginedev.vercel.app/tempmail/get/?email=${encodeURIComponent(tempEmail)}`);
           if (checkResponse.status && checkResponse.messages.length > 0) {
-            const latestMessage = checkResponse.messages.find(msg => msg.subject && msg.subject.includes('confirmation code'));
+            const latestMessage = checkResponse.messages[0];
 
-            if (latestMessage && latestMessage.message) {
-              const codeMatch = latestMessage.message.match(/\b\d{5,6}\b/);
-              const confirmationCode = codeMatch ? codeMatch[0] : null;
+            if (latestMessage) {
+              const fullMessage = `From: ${latestMessage.from}\nSubject: ${latestMessage.subject}\nDate: ${latestMessage.date}\n\nMessage:\n${latestMessage.message}`;
 
-              if (confirmationCode) {
-                await sendMessage(kupal, { text: `Your confirmation code is: ${confirmationCode}` }, chilli);
-                clearInterval(checkInterval);
-              }
+              await sendMessage(kupal, { text: fullMessage }, chilli);
+              clearInterval(checkInterval);
             }
           }
         } catch (error) {
