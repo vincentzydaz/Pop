@@ -12,7 +12,7 @@
   "dependencies": {
     "@types/node": "^18.0.6",
     "axios": "^1.7.2",
-    "betabotz-tools": "^1.0.0",
+    "betabotz-tools": "^0.0.7",
     "body-parser": "^1.20.2",
     "express": "^4.19.2",
     "node-fetch": "^3.3.2",
