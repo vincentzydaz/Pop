@@ -5,6 +5,7 @@ const pageAccessToken = fs.readFileSync('token.txt', 'utf8');
 
 module.exports = {
   name: 'uid',
+  description: 'get ur actual id',
   author: 'coffee',
   
   async execute(senderId) {
