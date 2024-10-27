@@ -1,4 +1,3 @@
-const axios = require('axios');
 const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
@@ -20,15 +19,11 @@ module.exports = {
     await sendMessage(senderId, { text: 'Generating board image... Please wait.' }, pageAccessToken);
 
     try {
-      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
-      const imageData = Buffer.from(response.data, 'binary').toString('base64');
-      
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
           payload: {
-            is_reusable: true,
-            url: `data:image/png;base64,${imageData}`
+            url: apiUrl
           }
         }
       }, pageAccessToken);
