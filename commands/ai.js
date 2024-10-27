@@ -12,7 +12,8 @@ module.exports = {
       return sendMessage(chilli, { text: `Usage: ai [your question]` }, kalamansi);
     }
 
-    sendMessage(chilli, { text: "Processing your request..." }, kalamansi);
+    
+    sendMessage(chilli, { text: `🔍 Searching: ${prompt}` }, kalamansi);
 
     try {
       const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o-v2", {
@@ -55,7 +56,7 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
     for (const message of messages) {
-      await new Promise(resolve => setTimeout(resolve, 500)); // 1-second delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       await sendMessage(chilli, { text: message }, kalamansi);
     }
   } else {
