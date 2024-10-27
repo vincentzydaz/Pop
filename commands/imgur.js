@@ -30,7 +30,7 @@ module.exports = {
         }, pageAccessToken);
       }
     }
-    // Step 3: If no attachment or reply image, send error message
+    // Step 3: If no attachment or reply image, use last saved image URL if available
     else if (imageUrl) {
       imageLink = imageUrl;
     } else {
@@ -39,12 +39,15 @@ module.exports = {
       }, pageAccessToken);
     }
 
+    // Inform the user that the upload process has started
     await sendMessage(senderId, { text: 'Uploading the image to Imgur, please wait...' }, pageAccessToken);
 
     try {
+      // Upload the image to Imgur
       const response = await axios.get(`https://betadash-uploader.vercel.app/imgur?link=${encodeURIComponent(imageLink)}`);
       const imgurLink = response.data.uploaded.image;
 
+      // Send the Imgur link as a response
       await sendMessage(senderId, {
         text: `Here is the Imgur link for the image you provided:\n\n${imgurLink}`
       }, pageAccessToken);
