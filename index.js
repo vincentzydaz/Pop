@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 
 const VERIFY_TOKEN = 'pagebot';
 const PAGE_ACCESS_TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
-const SCRIPT_FILE = "index.js";
+const SCRIPT_FILE = "index.js"; // This is the main script file name
 const SCRIPT_PATH = __dirname + "/" + SCRIPT_FILE;
 const RESTART_FILE = './restart.json';
 const GIT_REPO = "https://github.com/churchillitos/Pgiboka.git";
@@ -65,6 +65,7 @@ function executeCommand(command) {
 async function loadBot() {
   console.log("Starting the bot...");
 
+  // Perform a git pull to update from the repository
   try {
     console.log("Pulling latest updates from the repository...");
     await executeCommand(`git pull ${GIT_REPO} main --ff-only`);
@@ -84,7 +85,7 @@ async function loadBot() {
       process_.on("close", (exitCode) => {
         if (exitCode === 1) {
           console.log("Restarting bot...");
-          checkRestartFile();
+          loadBot(); // Restart the bot only when the command is executed
         } else {
           console.log(`Bot stopped with code ${exitCode}`);
         }
@@ -93,20 +94,16 @@ async function loadBot() {
     });
   };
 
+  if (fs.existsSync(RESTART_FILE)) {
+    fs.unlinkSync(RESTART_FILE); // Remove the restart file to avoid accidental restarts
+  }
+
   executeBot("node", [SCRIPT_PATH]).catch(console.error);
 }
 
-function checkRestartFile() {
-  if (fs.existsSync(RESTART_FILE)) {
-    fs.unlinkSync(RESTART_FILE);
-    loadBot();
-  } else {
-    console.log("No restart file found. Bot will not restart.");
-  }
-}
-
+// Only call loadBot() when the server starts
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
-  checkRestartFile();
+  loadBot(); // Start the bot when the server starts
 });
