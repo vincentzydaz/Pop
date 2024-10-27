@@ -3,22 +3,20 @@ const axios = require("axios");
 const fs = require("fs");
 
 module.exports = {
-    name: "spotify",
-    description: "Play and Download music from Spotify",
+    name: "music",
+    description: "Play and Download music",
     author: "deku",
 
-    async execute(senderId, args, pageAccessToken) {
+    async execute(bundas, yakzy, kupalboss) {
         try {
             const { spotify, spotifydl } = require("betabotz-tools");
-            const q = args.join(" ");
+            const q = yakzy.join(" ");
             if (!q) {
-                return sendMessage(senderId, { text: "[ ! ] Please input a music title..." }, pageAccessToken);
+                return sendMessage(bundas, { text: "[ ! ] Please input a music title..." }, kupalboss);
             }
 
-            // Notify user that the search is in progress
-            await sendMessage(senderId, { text: "🔍 Searching for the music: " + q + "..." }, pageAccessToken);
+            await sendMessage(bundas, { text: "🔍 Searching for the music: " + q + "..." }, kupalboss);
 
-            // Perform API calls to fetch song data
             const lyricsResponse = await axios.get(`https://lyrist.vercel.app/api/${encodeURIComponent(q)}`);
             const { lyrics, title } = lyricsResponse.data;
 
@@ -26,44 +24,63 @@ module.exports = {
             const url = results.result.data[0].url;
             const result1 = await spotifydl(url);
 
-            // Download the song as an audio buffer
             const dl = (
                 await axios.get(result1.result, { responseType: "arraybuffer" })
             ).data;
             fs.writeFileSync(path, Buffer.from(dl, "utf-8"));
 
-            // Send the downloaded audio file to the user
-            await sendMessage(senderId, {
+            await sendMessage(bundas, {
                 attachment: {
                     type: "audio",
                     payload: {
                         is_reusable: true,
-                        url: result1.result // use the direct Spotify download link
+                        url: result1.result
                     }
                 }
-            }, pageAccessToken);
+            }, kupalboss);
 
-            // Clean up the file after sending
             fs.unlinkSync(path);
 
         } catch (error) {
             console.error("Error occurred:", error);
-            return sendMessage(senderId, { text: `Error: ${error.message}` }, pageAccessToken);
+            return sendMessage(bundas, { text: `Error: ${error.message}` }, kupalboss);
         }
     }
 };
 
-// Helper function to send messages to the user via the Page Bot API
-async function sendMessage(recipientId, message, pageAccessToken) {
+async function sendMessage(bundas, message, kupalboss) {
     try {
         await axios.post(
-            `https://graph.facebook.com/v11.0/me/messages?access_token=${pageAccessToken}`,
+            `https://graph.facebook.com/v11.0/me/messages?access_token=${kupalboss}`,
             {
-                recipient: { id: recipientId },
+                recipient: { id: bundas },
                 message: message
             }
         );
     } catch (error) {
         console.error("Failed to send message:", error);
     }
+}
+
+async function sendConcatenatedMessage(bundas, text, kupalboss) {
+    const maxMessageLength = 2000;
+
+    if (text.length > maxMessageLength) {
+        const messages = splitMessageIntoChunks(text, maxMessageLength);
+
+        for (const message of messages) {
+            await new Promise(resolve => setTimeout(resolve, 500));
+            await sendMessage(bundas, { text: message }, kupalboss);
+        }
+    } else {
+        await sendMessage(bundas, { text }, kupalboss);
+    }
+}
+
+function splitMessageIntoChunks(message, chunkSize) {
+    const chunks = [];
+    for (let i = 0; i < message.length; i += chunkSize) {
+        chunks.push(message.slice(i, i + chunkSize));
+    }
+    return chunks;
 }
