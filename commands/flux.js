@@ -3,27 +3,37 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'flux',
-  description: 'Generate an image based on a query using the Flux API.',
+  description: 'Generate an image based on a prompt using the Flux API.',
+  usage: 'flux <prompt>\nExample: flux cat',
   author: 'chilli',
-  usage: 'flux <query>', // Example usage
-
-  async execute(kupal, args, chilli) {
-    const query = args.join(' ');
-    if (!query) {
-      return sendMessage(kupal, { text: 'Usage: flux <query>\nExample: flux cat' }, chilli);
+  async execute(senderId, args, pageAccessToken) {
+    if (!args || args.length === 0) {
+      await sendMessage(senderId, {
+        text: 'Please provide a prompt to generate an image.\n\nUsage:\n flux <prompt>\nExample: flux cat'
+      }, pageAccessToken);
+      return;
     }
 
+    const prompt = args.join(' ');
+    const apiUrl = `https://nethwieginedev.vercel.app/flux?q=${encodeURIComponent(prompt)}`;
+
+    await sendMessage(senderId, { text: 'Generating image... Please wait.' }, pageAccessToken);
+
     try {
-      const { data: fluxResponse } = await axios.get(`https://nethwieginedev.vercel.app/flux?q=${encodeURIComponent(query)}`);
-      
-      if (fluxResponse && fluxResponse.image_url) {
-        await sendMessage(kupal, { attachment: { type: 'image', payload: { url: fluxResponse.image_url } } }, chilli);
-      } else {
-        await sendMessage(kupal, { text: 'Failed to retrieve an image. Please try again.' }, chilli);
-      }
+      await sendMessage(senderId, {
+        attachment: {
+          type: 'image',
+          payload: {
+            url: apiUrl
+          }
+        }
+      }, pageAccessToken);
+
     } catch (error) {
-      console.error('Error fetching image from Flux API:', error);
-      await sendMessage(kupal, { text: 'An error occurred while generating the image. Please try again.' }, chilli);
+      console.error('Error generating image:', error);
+      await sendMessage(senderId, {
+        text: 'An error occurred while generating the image. Please try again later.'
+      }, pageAccessToken);
     }
   }
 };
