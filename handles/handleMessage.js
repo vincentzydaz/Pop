@@ -29,8 +29,12 @@ async function handleMessage(event, pageAccessToken) {
       await sendMessage(senderId, { text: 'Downloading your Facebook/Instagram video, please wait...' }, pageAccessToken);
       try {
         const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${messageText}`);
-        const data = response?.data?.data;
-        const shotiUrl = data?.play;
+        
+        // Log the response structure to check if URL is accessible
+        console.log("FBDL API Response:", response.data);
+
+        const data = response?.data?.data || response?.data;
+        const shotiUrl = data?.play || data?.url || data?.downloadUrl;
 
         if (shotiUrl) {
           await sendMessage(senderId, {
@@ -46,6 +50,7 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'Failed to retrieve video URL. Please check the URL and try again.' }, pageAccessToken);
         }
       } catch (error) {
+        console.error("Error fetching Facebook/Instagram video:", error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook/Instagram video. Please try again later.' }, pageAccessToken);
       }
       return;
@@ -72,6 +77,7 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'Failed to retrieve TikTok video URL. Please check the URL and try again.' }, pageAccessToken);
         }
       } catch (error) {
+        console.error("Error fetching TikTok video:", error);
         await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
       }
       return;
