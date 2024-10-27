@@ -9,19 +9,9 @@ module.exports = {
   async execute(senderId, args, pageAccessToken, event, imageUrl) {
     let imageLink;
 
-    // Step 1: Check for image attachment in the current message
-    if (event.message.attachments && event.message.attachments.length > 0) {
-      const attachment = event.message.attachments[0];
-      if (attachment.type === 'image' && attachment.payload && attachment.payload.url) {
-        imageLink = attachment.payload.url;
-      } else {
-        return sendMessage(senderId, {
-          text: 'No valid image attachment found. Please attach an image.'
-        }, pageAccessToken);
-      }
-    }
-    // Step 2: If no direct attachment, check for reply-to image
-    else if (event.message.reply_to && event.message.reply_to.mid) {
+    if (imageUrl) {
+      imageLink = imageUrl;
+    } else if (event.message.reply_to && event.message.reply_to.mid) {
       try {
         imageLink = await getAttachments(event.message.reply_to.mid, pageAccessToken);
       } catch (error) {
@@ -29,25 +19,18 @@ module.exports = {
           text: 'Failed to retrieve the image from the reply. Please try again.'
         }, pageAccessToken);
       }
-    }
-    // Step 3: If no attachment or reply image, use last saved image URL if available
-    else if (imageUrl) {
-      imageLink = imageUrl;
     } else {
       return sendMessage(senderId, {
-        text: 'No attachment detected. Please attach or reply to an image.'
+        text: 'No attachment detected. Please reply to an image.'
       }, pageAccessToken);
     }
 
-    // Inform the user that the upload process has started
     await sendMessage(senderId, { text: 'Uploading the image to Imgur, please wait...' }, pageAccessToken);
 
     try {
-      // Upload the image to Imgur
       const response = await axios.get(`https://betadash-uploader.vercel.app/imgur?link=${encodeURIComponent(imageLink)}`);
       const imgurLink = response.data.uploaded.image;
 
-      // Send the Imgur link as a response
       await sendMessage(senderId, {
         text: `Here is the Imgur link for the image you provided:\n\n${imgurLink}`
       }, pageAccessToken);
