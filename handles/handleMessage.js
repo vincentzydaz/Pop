@@ -13,9 +13,6 @@ for (const file of commandFiles) {
   }
 }
 
-const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
-const facebookLinkRegex = /https:\/\/www\.facebook\.com\/\S+/;
-
 async function handleMessage(event, pageAccessToken) {
   if (!event || !event.sender || !event.sender.id) {
     return;
@@ -25,36 +22,8 @@ async function handleMessage(event, pageAccessToken) {
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
+    const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
 
-    // Facebook video handling
-    if (facebookLinkRegex.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading your Facebook video, please wait...' }, pageAccessToken);
-
-      try {
-        const response = await axios.get(`https://betadash-search-download.vercel.app/fbdl?url=${encodeURIComponent(messageText)}`);
-        const videoUrl = response.data?.sd || response.data?.hd;
-
-        if (videoUrl) {
-          await sendMessage(senderId, {
-            attachment: {
-              type: 'video',
-              payload: {
-                url: videoUrl,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        } else {
-          await sendMessage(senderId, { text: 'Failed to retrieve Facebook video URL. Please check the URL and try again.' }, pageAccessToken);
-        }
-      } catch (error) {
-        console.error("Error fetching Facebook video:", error.message);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the Facebook video. Please try again later.' }, pageAccessToken);
-      }
-      return;
-    }
-
-    // TikTok video handling
     if (tiktokRegex.test(messageText)) {
       await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
       try {
@@ -82,7 +51,6 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    // Command handling
     let commandName, args;
     if (messageText.startsWith('-')) {
       const argsArray = messageText.slice(1).trim().split(/\s+/);
