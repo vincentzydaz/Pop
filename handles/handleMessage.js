@@ -4,6 +4,8 @@ const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
+const lastImageByUser = new Map();
+
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 
 for (const file of commandFiles) {
@@ -13,20 +15,18 @@ for (const file of commandFiles) {
   }
 }
 
-const lastImageByUser = new Map();
-
 async function handleMessage(event, pageAccessToken) {
   if (!event || !event.sender || !event.sender.id) return;
 
   const senderId = event.sender.id;
 
+  // Save the last image sent by the user
   if (event.message && event.message.attachments && event.message.attachments[0]?.type === 'image') {
     lastImageByUser.set(senderId, event.message.attachments[0].payload.url);
   }
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
-
     const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
 
     if (tiktokRegex.test(messageText)) {
