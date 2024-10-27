@@ -10,7 +10,16 @@ module.exports = {
     const kalamansiPrompt = pogi.join(" ");
 
     if (!kalamansiPrompt) {
-      return sendMessage(chilli, { text: `Please provide an image and replied to it using messenger to analyze or describe etc.. or ask a question!\n\nExample: gemini what is AI?` }, kalamansi);
+      return sendMessage(chilli, { 
+        text: `Usage Instructions:
+To use the Gemini command, you can either:
+1. Reply to an image using **Messenger** (Facebook Lite does not support the reply feature) and type "gemini" followed by your question or description. This will allow Gemini to analyze the image based on your prompt.
+2. If you don’t need image analysis, you can simply type "gemini" followed by your question.
+
+Examples:
+- gemini what is AI?
+- [Reply to an image with:] gemini describe this landmark.` 
+      }, kalamansi);
     }
 
     sendMessage(chilli, { text: "Please wait... 🔎" }, kalamansi);
