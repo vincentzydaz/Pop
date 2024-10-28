@@ -56,9 +56,7 @@ function executeCommand(command) {
         console.error(`Error executing command: ${command}`, error);
         return reject(error);
       }
-      console.log(stdout);
-      if (stderr) console.error(stderr);
-      resolve();
+      resolve(stdout);
     });
   });
 }
@@ -68,15 +66,13 @@ async function loadBot() {
 
   // Perform a git pull to update from the repository
   try {
-    console.log("Pulling latest updates from the repository...");
     await executeCommand(`git pull ${GIT_REPO} main --ff-only`);
-    console.log("Code updated successfully.");
   } catch (error) {
-    console.log("Failed to update code from the repository. Proceeding without update.");
+    console.error("Failed to update code from the repository. Proceeding without update.");
   }
 
   const executeBot = (cmd, args) => {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       let process_ = spawn(cmd, args, {
         cwd: __dirname,
         stdio: "inherit",
@@ -102,12 +98,11 @@ async function loadBot() {
     // Get the local time in the Philippines timezone
     const restartTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
 
-    
     sendMessage(adminId, { text: `Successfully restarted the bot. Time: ${restartTime}` }, PAGE_ACCESS_TOKEN);
-
+    
+    // Remove the restart file to avoid repeated messages
     fs.unlinkSync(RESTART_FILE); 
-}
-
+  }
 
   executeBot("node", [SCRIPT_PATH]).catch(console.error);
 }
