@@ -98,13 +98,16 @@ async function loadBot() {
   if (fs.existsSync(RESTART_FILE)) {
     const restartData = JSON.parse(fs.readFileSync(RESTART_FILE, 'utf8'));
     const adminId = restartData.restartId;
-    const restartTime = new Date().toLocaleString();
+
+    // Get the local time in the Philippines timezone
+    const restartTime = new Date().toLocaleString('en-PH', { timeZone: 'Asia/Manila' });
+
     
-    // Send confirmation message to admin
     sendMessage(adminId, { text: `Successfully restarted the bot. Time: ${restartTime}` }, PAGE_ACCESS_TOKEN);
 
-    fs.unlinkSync(RESTART_FILE); // Remove the restart file after sending confirmation
-  }
+    fs.unlinkSync(RESTART_FILE); 
+}
+
 
   executeBot("node", [SCRIPT_PATH]).catch(console.error);
 }
