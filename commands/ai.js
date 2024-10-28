@@ -12,8 +12,8 @@ module.exports = {
       return sendMessage(chilli, { text: `Usage: ai [your question]` }, kalamansi);
     }
 
-    // Updated search indicator
-    sendMessage(chilli, { text: `🔍 : "${prompt}"` }, kalamansi);
+    
+    sendMessage(chilli, { text: `✍️ Answering...` }, kalamansi);
 
     try {
       const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o-v2", {
@@ -44,7 +44,7 @@ module.exports = {
       }
 
     } catch (error) {
-      sendMessage(chilli, { text: "Error while processing your request. Please try again or use gpt4." }, kalamansi);
+      sendMessage(chilli, { text: "⚠️ Error while processing your request. Please try again or use gpt4." }, kalamansi);
     }
   }
 };
