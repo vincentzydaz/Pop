@@ -4,8 +4,10 @@ const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
+const lastImageByUser = new Map();
+const lastVideoByUser = new Map();
 
+const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
   if (command.name && typeof command.name === 'string') {
@@ -14,12 +16,28 @@ for (const file of commandFiles) {
 }
 
 async function handleMessage(event, pageAccessToken) {
-  if (!event || !event.sender || !event.sender.id) {
-    return;
+  if (!event || !event.sender || !event.sender.id) return;
+  
+  const senderId = event.sender.id;
+  let imageUrl = null;
+  let videoUrl = null;
+
+  // Check for image or video attachments and store them
+  if (event.message && event.message.attachments) {
+    const imageAttachment = event.message.attachments.find(att => att.type === 'image');
+    const videoAttachment = event.message.attachments.find(att => att.type === 'video');
+
+    if (imageAttachment) {
+      imageUrl = imageAttachment.payload.url;
+      lastImageByUser.set(senderId, imageUrl);
+    }
+    if (videoAttachment) {
+      videoUrl = videoAttachment.payload.url;
+      lastVideoByUser.set(senderId, videoUrl);
+    }
   }
 
-  const senderId = event.sender.id;
-
+  // Check for text message and commands
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim();
     const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
@@ -60,6 +78,28 @@ async function handleMessage(event, pageAccessToken) {
       const words = messageText.trim().split(/\s+/);
       commandName = words.shift().toLowerCase();
       args = words;
+    }
+
+    // Handle the Imgur command specifically
+    if (commandName === 'imgur') {
+      const lastImage = lastImageByUser.get(senderId);
+      const lastVideo = lastVideoByUser.get(senderId);
+
+      if (lastImage || lastVideo) {
+        try {
+          const mediaToUpload = lastImage || lastVideo;
+          await commands.get('imgur').execute(senderId, args, pageAccessToken, mediaToUpload);
+
+          // Clear the last image or video after use
+          if (lastImage) lastImageByUser.delete(senderId);
+          if (lastVideo) lastVideoByUser.delete(senderId);
+        } catch (error) {
+          await sendMessage(senderId, { text: 'An error occurred while uploading the media to Imgur.' }, pageAccessToken);
+        }
+      } else {
+        await sendMessage(senderId, { text: 'Please send an image or video first and then use the "imgur" command.' }, pageAccessToken);
+      }
+      return;
     }
 
     if (commands.has(commandName)) {
