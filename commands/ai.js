@@ -4,7 +4,7 @@ const { sendMessage } = require('../handles/sendMessage');
 module.exports = {
   name: "ai",
   description: "Interact with GPT-4 using a custom API and receive responses, including images.",
-  author: "Churchill",
+  author: "chilli",
 
   async execute(chilli, args, kalamansi) {
     const prompt = args.join(" ");
@@ -12,8 +12,7 @@ module.exports = {
       return sendMessage(chilli, { text: `Usage: ai [your question]` }, kalamansi);
     }
 
-    
-    sendMessage(chilli, { text: `🔍 Searching: ${prompt}` }, kalamansi);
+    sendMessage(chilli, { text: `🔍 : "${prompt}"...` }, kalamansi);
 
     try {
       const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o-v2", {
@@ -37,10 +36,10 @@ module.exports = {
             }
           }, kalamansi);
         } else {
-          await sendConcatenatedMessage(chilli, result, kalamansi);
+          await sendConcatenatedMessage(chilli, `🧩 | Chilli Gpt\n\n${result}`, kalamansi);
         }
       } else {
-        await sendConcatenatedMessage(chilli, result, kalamansi);
+        await sendConcatenatedMessage(chilli, `🧩 | Chilli Gpt\n\n${result}`, kalamansi);
       }
 
     } catch (error) {
@@ -55,12 +54,13 @@ async function sendConcatenatedMessage(chilli, text, kalamansi) {
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
-    for (const message of messages) {
+    for (let i = 0; i < messages.length; i++) {
+      const messageText = i === 0 ? `🧩 | Chilli Gpt\n\n${messages[i]}` : messages[i];
       await new Promise(resolve => setTimeout(resolve, 500));
-      await sendMessage(chilli, { text: message }, kalamansi);
+      await sendMessage(chilli, { text: messageText }, kalamansi);
     }
   } else {
-    await sendMessage(chilli, { text }, kalamansi);
+    await sendMessage(chilli, { text: `🧩 | Chilli Gpt\n\n${text}` }, kalamansi);
   }
 }
 
