@@ -36,10 +36,10 @@ module.exports = {
             }
           }, kalamansi);
         } else {
-          await sendConcatenatedMessage(chilli, `🧩 | Chilli Gpt\n\n${result}`, kalamansi);
+          await sendConcatenatedMessage(chilli, result, kalamansi);
         }
       } else {
-        await sendConcatenatedMessage(chilli, `🧩 | Chilli Gpt\n\n${result}`, kalamansi);
+        await sendConcatenatedMessage(chilli, result, kalamansi);
       }
 
     } catch (error) {
@@ -50,12 +50,14 @@ module.exports = {
 
 async function sendConcatenatedMessage(chilli, text, kalamansi) {
   const maxMessageLength = 2000;
+  let isFirstMessage = true;
 
   if (text.length > maxMessageLength) {
     const messages = splitMessageIntoChunks(text, maxMessageLength);
 
-    for (let i = 0; i < messages.length; i++) {
-      const messageText = i === 0 ? `🧩 | Chilli Gpt\n\n${messages[i]}` : messages[i];
+    for (const message of messages) {
+      const messageText = isFirstMessage ? `🧩 | Chilli Gpt\n\n${message}` : message;
+      isFirstMessage = false;
       await new Promise(resolve => setTimeout(resolve, 500));
       await sendMessage(chilli, { text: messageText }, kalamansi);
     }
