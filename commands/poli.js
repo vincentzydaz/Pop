@@ -3,41 +3,35 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'poli',
-  description: 'Generate an image based on a prompt using Pollinations.',
-  usage: 'poli <prompt>\nExample: poli cat',
-  author: 'chill',
+  description: 'Generate an image based on a user-specified prompt using the Pollinations API.',
+  author: 'chilli',
+
   async execute(senderId, args, pageAccessToken) {
-    // Validate prompt input
-    if (!args || args.length === 0) {
-      await sendMessage(senderId, {
-        text: 'Please provide a prompt to generate an image.\n\nUsage:\n poli <prompt>\nExample: poli dog'
+    const prompt = args.join(" ");
+    if (!prompt) {
+      return sendMessage(senderId, {
+        text: 'Please provide a prompt for the image. Example usage: "poli cat and dog"',
       }, pageAccessToken);
-      return;
     }
 
-    const query = args.join(' ');
-
-    // Notify user about image search
-    await sendMessage(senderId, { text: `Searching for "${query}"...` }, pageAccessToken);
+    await sendMessage(senderId, { text: `Generating an image for: "${prompt}", please wait... 🖼️` }, pageAccessToken);
 
     try {
-      // Construct the Pollinations API URL
-      const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(query)}`;
+      const apiUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}`;
+      const response = await axios.get(apiUrl, { responseType: 'arraybuffer' });
+      const imageData = Buffer.from(response.data, 'binary').toString('base64');
 
-      // Send the generated image as an attachment
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
           payload: {
-            url: imageUrl,
-            is_reusable: true
+            is_reusable: true,
+            url: `data:image/jpeg;base64,${imageData}`
           }
-        },
-        text: 'Download Successfully!'
+        }
       }, pageAccessToken);
 
     } catch (error) {
-      console.error('Error generating image:', error);
       await sendMessage(senderId, {
         text: 'An error occurred while generating the image. Please try again later.'
       }, pageAccessToken);
