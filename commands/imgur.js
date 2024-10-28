@@ -6,36 +6,29 @@ module.exports = {
   description: 'Upload an image to Imgur.',
   author: 'chilli',
 
-  async execute(senderId, args, pageAccessToken, event, imageUrl) {
-    let imageLink;
-
-    if (imageUrl) {
-      imageLink = imageUrl;
-    } else if (event.message.reply_to && event.message.reply_to.mid) {
-      try {
-        imageLink = await getAttachments(event.message.reply_to.mid, pageAccessToken);
-      } catch (error) {
-        return sendMessage(senderId, {
-          text: 'Failed to retrieve the image from the reply. Please try again.'
-        }, pageAccessToken);
-      }
-    } else {
+  async execute(senderId, args, pageAccessToken, imageUrl) {
+    if (!imageUrl) {
       return sendMessage(senderId, {
-        text: 'No attachment detected. Please reply to an image.'
+        text: 'No attachment detected. Please send an image or reply to an image first.'
       }, pageAccessToken);
     }
 
     await sendMessage(senderId, { text: 'Uploading the image to Imgur, please wait...' }, pageAccessToken);
 
     try {
-      const response = await axios.get(`https://betadash-uploader.vercel.app/imgur?link=${encodeURIComponent(imageLink)}`);
-      const imgurLink = response.data.uploaded.image;
+      const response = await axios.get(`https://betadash-uploader.vercel.app/imgur?link=${encodeURIComponent(imageUrl)}`);
+      
+      // Check if the response contains the expected data
+      const imgurLink = response?.data?.uploaded?.image;
+      if (!imgurLink) {
+        throw new Error('Imgur link not found in the response');
+      }
 
       await sendMessage(senderId, {
         text: `Here is the Imgur link for the image you provided:\n\n${imgurLink}`
       }, pageAccessToken);
     } catch (error) {
-      console.error('Error uploading image to Imgur:', error);
+      console.error('Error uploading image to Imgur:', error.response?.data || error.message);
       await sendMessage(senderId, {
         text: 'An error occurred while uploading the image to Imgur. Please try again later.'
       }, pageAccessToken);
@@ -59,7 +52,7 @@ async function getAttachments(mid, pageAccessToken) {
       throw new Error("No image found in the replied message.");
     }
   } catch (error) {
-    console.error('Failed to fetch attachments:', error);
+    console.error('Failed to fetch attachments:', error.response?.data || error.message);
     throw new Error("Failed to retrieve the image.");
   }
 }
