@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const fs = require('fs');
 const { handleMessage } = require('./handles/handleMessage');
 const { handlePostback } = require('./handles/handlePostback');
+const { sendMessage } = require('./handles/sendMessage');
 const { exec, spawn } = require("child_process");
 
 const app = express();
@@ -10,7 +11,7 @@ app.use(bodyParser.json());
 
 const VERIFY_TOKEN = 'pagebot';
 const PAGE_ACCESS_TOKEN = fs.readFileSync('token.txt', 'utf8').trim();
-const SCRIPT_FILE = "index.js"; // This is the main script file name
+const SCRIPT_FILE = "index.js"; // Main script file name
 const SCRIPT_PATH = __dirname + "/" + SCRIPT_FILE;
 const RESTART_FILE = './restart.json';
 const GIT_REPO = "https://github.com/churchillitos/Pgiboka.git";
@@ -85,7 +86,7 @@ async function loadBot() {
       process_.on("close", (exitCode) => {
         if (exitCode === 1) {
           console.log("Restarting bot...");
-          loadBot(); // Restart the bot only when the command is executed
+          loadBot();
         } else {
           console.log(`Bot stopped with code ${exitCode}`);
         }
@@ -95,7 +96,14 @@ async function loadBot() {
   };
 
   if (fs.existsSync(RESTART_FILE)) {
-    fs.unlinkSync(RESTART_FILE); // Remove the restart file to avoid accidental restarts
+    const restartData = JSON.parse(fs.readFileSync(RESTART_FILE, 'utf8'));
+    const adminId = restartData.restartId;
+    const restartTime = new Date().toLocaleString();
+    
+    // Send confirmation message to admin
+    sendMessage(adminId, { text: `Successfully restarted the bot. Time: ${restartTime}` }, PAGE_ACCESS_TOKEN);
+
+    fs.unlinkSync(RESTART_FILE); // Remove the restart file after sending confirmation
   }
 
   executeBot("node", [SCRIPT_PATH]).catch(console.error);
