@@ -4,7 +4,7 @@ const { sendMessage } = require('../handles/sendMessage');
 module.exports = {
   name: "ai",
   description: "Interact with GPT-4 using a custom API and receive responses, including images.",
-  author: "Churchill",
+  author: "chilli",
 
   async execute(chilli, args, kalamansi) {
     const prompt = args.join(" ");
@@ -12,8 +12,8 @@ module.exports = {
       return sendMessage(chilli, { text: `Usage: ai [your question]` }, kalamansi);
     }
 
-    
-    sendMessage(chilli, { text: `🔍 Searching: ${prompt}` }, kalamansi);
+    // Updated search indicator
+    sendMessage(chilli, { text: `🔍 : "${prompt}"` }, kalamansi);
 
     try {
       const response = await axios.get("https://appjonellccapis.zapto.org/api/gpt4o-v2", {
