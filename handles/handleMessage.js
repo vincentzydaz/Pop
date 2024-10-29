@@ -72,6 +72,19 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
+    if (messageText.startsWith('gemini')) {
+      const lastImage = lastImageByUser.get(senderId);
+      const args = messageText.split(/\s+/).slice(1);
+
+      try {
+        await commands.get('gemini').execute(senderId, args, pageAccessToken, event, lastImage);
+        lastImageByUser.delete(senderId);
+      } catch (error) {
+        await sendMessage(senderId, { text: 'An error occurred while processing the Gemini command.' }, pageAccessToken);
+      }
+      return;
+    }
+
     let commandName, args;
     if (messageText.startsWith('-')) {
       const argsArray = messageText.slice(1).trim().split(/\s+/);
