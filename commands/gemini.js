@@ -9,24 +9,31 @@ module.exports = {
   async execute(senderId, args, pageAccessToken, event, imageUrl) {
     const userPrompt = args.join(" ");
 
-    if (!userPrompt) {
+    if (!userPrompt && !imageUrl) {
       return sendMessage(senderId, { 
         text: `Usage Instructions:
 To use the Gemini command, you can either:
-1. Send an image and then type "gemini" followed by your question or description. This will allow Gemini to analyze the image based on your prompt.
-2. If you don’t need image analysis, simply type "gemini" followed by your question.
+1. Send an image with the message "gemini" followed by your question or description, and Gemini will analyze the image.
+2. Reply to an image with "gemini" and your question, and Gemini will analyze the replied image.
+3. Send only "gemini" followed by your question for text-only queries without image analysis.
 
 Examples:
 - gemini what is AI?
-- [After sending an image:] gemini what do u see in picture.` 
+- [After sending an image:] gemini what do u see in picture.
+- [Replying to an image with:] gemini describe this.` 
       }, pageAccessToken);
     }
 
     sendMessage(senderId, { text: "Please wait... 🔎" }, pageAccessToken);
 
     try {
-      if (!imageUrl && event.message?.attachments && event.message.attachments[0]?.type === 'image') {
-        imageUrl = event.message.attachments[0].payload.url;
+      if (!imageUrl) {
+      
+        if (event.message.reply_to && event.message.reply_to.mid) {
+          imageUrl = await getRepliedImage(event.message.reply_to.mid, pageAccessToken);
+        } else if (event.message?.attachments && event.message.attachments[0]?.type === 'image') {
+          imageUrl = event.message.attachments[0].payload.url;
+        }
       }
 
       const apiUrl = `https://joshweb.click/gemini`;
@@ -51,6 +58,18 @@ async function handleImageRecognition(apiUrl, prompt, imageUrl) {
   });
 
   return data;
+}
+
+async function getRepliedImage(mid, pageAccessToken) {
+  const { data } = await axios.get(`https://graph.facebook.com/v21.0/${mid}/attachments`, {
+    params: { access_token: pageAccessToken }
+  });
+
+  if (data && data.data.length > 0 && data.data[0].image_data) {
+    return data.data[0].image_data.url;
+  } else {
+    return "";
+  }
 }
 
 async function sendConcatenatedMessage(senderId, text, pageAccessToken) {
