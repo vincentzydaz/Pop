@@ -27,8 +27,6 @@ app.get('/webhook', (req, res) => {
     } else {
       res.sendStatus(403);
     }
-  } else {
-    res.sendStatus(400).send("Bad Request: Missing parameters.");
   }
 });
 
@@ -38,14 +36,10 @@ app.post('/webhook', (req, res) => {
   if (body.object === 'page') {
     body.entry.forEach(entry => {
       entry.messaging.forEach(event => {
-        try {
-          if (event.message) {
-            handleMessage(event, PAGE_ACCESS_TOKEN);
-          } else if (event.postback) {
-            handlePostback(event, PAGE_ACCESS_TOKEN);
-          }
-        } catch (error) {
-          console.error("Error handling event:", error);
+        if (event.message) {
+          handleMessage(event, PAGE_ACCESS_TOKEN);
+        } else if (event.postback) {
+          handlePostback(event, PAGE_ACCESS_TOKEN);
         }
       });
     });
@@ -59,7 +53,6 @@ function executeCommand(command) {
   return new Promise((resolve, reject) => {
     exec(command, { cwd: __dirname, shell: true }, (error, stdout, stderr) => {
       if (error) {
-        console.error("Command execution error:", stderr);
         return reject(error);
       }
       resolve(stdout);
@@ -71,7 +64,7 @@ async function loadBot() {
   try {
     await executeCommand(`git pull ${GIT_REPO} main --ff-only`);
   } catch (error) {
-    console.error("Failed to update code from the repository. Proceeding without update:", error);
+    console.error("Failed to update code from the repository. Proceeding without update.");
   }
 
   const executeBot = (cmd, args) => {
@@ -84,16 +77,11 @@ async function loadBot() {
 
       process_.on("close", (exitCode) => {
         if (exitCode === 1) {
-          console.log("Bot exited with code 1. Restarting...");
           loadBot();
         } else {
           console.log(`Bot stopped with code ${exitCode}`);
         }
         resolve();
-      });
-
-      process_.on("error", (error) => {
-        console.error("Failed to start bot process:", error);
       });
     });
   };
@@ -117,10 +105,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   loadBot();
-}).on('error', (error) => {
-  if (error.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Please use a different port.`);
-  } else {
-    console.error("Server error:", error);
-  }
 });
