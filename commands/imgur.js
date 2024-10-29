@@ -7,6 +7,9 @@ module.exports = {
   author: 'chilli',
 
   async execute(senderId, args, pageAccessToken, event) {
+    // Add debug logging to check the contents of the event object
+    console.log('Received event object:', JSON.stringify(event, null, 2));
+
     // Extract media URL from the event object
     let mediaUrl = null;
 
@@ -25,7 +28,7 @@ module.exports = {
     // If no media was found, send a message to the user
     if (!mediaUrl) {
       return sendMessage(senderId, {
-        text: 'Please send an image or video first, then type "imgur" to upload.'
+        text: 'Please send an image or video first, then type "imgur" to upload. kupal ka'
       }, pageAccessToken);
     }
 
