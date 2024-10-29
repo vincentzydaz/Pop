@@ -4,8 +4,6 @@ const axios = require('axios');
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const lastImageByUser = new Map();
-const lastVideoByUser = new Map();
 
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
@@ -19,42 +17,39 @@ async function handleMessage(event, pageAccessToken) {
   if (!event || !event.sender || !event.sender.id) return;
   
   const senderId = event.sender.id;
-
-  if (event.message && event.message.attachments) {
-    const imageAttachment = event.message.attachments.find(att => att.type === 'image');
-    const videoAttachment = event.message.attachments.find(att => att.type === 'video');
-
-    if (imageAttachment) {
-      lastImageByUser.set(senderId, imageAttachment.payload.url);
-    }
-    if (videoAttachment) {
-      lastVideoByUser.set(senderId, videoAttachment.payload.url);
-    }
-  }
+  let commandName, args;
 
   if (event.message && event.message.text) {
-    const messageText = event.message.text.trim().toLowerCase();
+    const messageText = event.message.text.trim();
+    const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
 
-    if (messageText === 'imgur') {
-      const lastImage = lastImageByUser.get(senderId);
-      const lastVideo = lastVideoByUser.get(senderId);
-      const mediaToUpload = lastImage || lastVideo;
+    if (tiktokRegex.test(messageText)) {
+      await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
+      try {
+        const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
+        const data = response.data.data;
+        const shotiUrl = data.play;
 
-      if (mediaToUpload) {
-        try {
-          await commands.get('imgur').execute(senderId, [], pageAccessToken, mediaToUpload);
-          lastImageByUser.delete(senderId);
-          lastVideoByUser.delete(senderId);
-        } catch (error) {
-          await sendMessage(senderId, { text: 'An error occurred while uploading the media to Imgur.' }, pageAccessToken);
+        if (shotiUrl) {
+          await sendMessage(senderId, {
+            attachment: {
+              type: 'video',
+              payload: {
+                url: shotiUrl,
+                is_reusable: true
+              }
+            }
+          }, pageAccessToken);
+        } else {
+          await sendMessage(senderId, { text: 'Failed to retrieve TikTok video URL. Please check the URL and try again.' }, pageAccessToken);
         }
-      } else {
-        await sendMessage(senderId, { text: 'Please send an image or video first, then type "imgur" to upload.' }, pageAccessToken);
+      } catch (error) {
+        console.error("Error fetching TikTok video:", error);
+        await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
       }
       return;
     }
 
-    let commandName, args;
     if (messageText.startsWith('-')) {
       const argsArray = messageText.slice(1).trim().split(/\s+/);
       commandName = argsArray.shift().toLowerCase();
