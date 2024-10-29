@@ -3,25 +3,35 @@ const { sendMessage } = require('../handles/sendMessage');
 
 module.exports = {
   name: 'removebg',
-  description: 'Remove background from an image using the RemoveBG API.',
+  description: 'Remove background from an image using the RemoveBG API and Facebook Graph API.',
   author: 'chilli',
 
   async execute(senderId, args, pageAccessToken, event) {
-    // Check for the last image from the user
-    const imageUrl = lastImageByUser.get(senderId);
+    // Check if there's an image in the incoming event
+    const attachments = event.message && event.message.attachments;
+    const imageAttachment = attachments && attachments.find(att => att.type === 'image');
 
-    if (!imageUrl) {
-      return sendMessage(senderId, {
-        text: `Please send an image first, then type "removebg" to remove its background.`
+    if (!imageAttachment) {
+      await sendMessage(senderId, {
+        text: `Please send an image first, then type "removebg" to remove its background.kupal`
       }, pageAccessToken);
+      return;
     }
 
-    await sendMessage(senderId, { text: 'Removing bg from the image, please wait... 🖼️' }, pageAccessToken);
-
     try {
-      // Use the custom remove background API endpoint
-      const removeBgUrl = `https://appjonellccapis.zapto.org/api/removebg?url=${encodeURIComponent(imageUrl)}`;
+      // Get the image URL via Facebook Graph API using the attachment ID
+      const attachmentId = imageAttachment.payload.id;
+      const graphApiUrl = `https://graph.facebook.com/v16.0/${attachmentId}?fields=url&access_token=${pageAccessToken}`;
 
+      const response = await axios.get(graphApiUrl);
+      const imageUrl = response.data.url;
+
+      await sendMessage(senderId, { text: 'Removing background from the image, please wait... 🖼️' }, pageAccessToken);
+
+      // Remove background using custom API
+      const removeBgUrl = `https://appjonellccapis.zapto.org/api/removebg?url=${encodeURIComponent(imageUrl)}`;
+      
+      // Send the processed image back to the user
       await sendMessage(senderId, {
         attachment: {
           type: 'image',
@@ -31,11 +41,8 @@ module.exports = {
         }
       }, pageAccessToken);
 
-      // Clear the last image to avoid reusing it
-      lastImageByUser.delete(senderId);
-
     } catch (error) {
-      console.error('Error removing background:', error);
+      console.error('Error removing background:', error.message || error);
       await sendMessage(senderId, {
         text: 'An error occurred while processing the image. Please try again later.'
       }, pageAccessToken);
