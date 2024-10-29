@@ -17,7 +17,7 @@ for (const file of commandFiles) {
 
 async function handleMessage(event, pageAccessToken) {
   if (!event || !event.sender || !event.sender.id) return;
-  
+
   const senderId = event.sender.id;
 
   if (event.message && event.message.attachments) {
@@ -34,6 +34,24 @@ async function handleMessage(event, pageAccessToken) {
 
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim().toLowerCase();
+
+    if (messageText === 'removebg') {
+      const lastImage = lastImageByUser.get(senderId);
+
+      if (lastImage) {
+        try {
+          await commands.get('removebg').execute(senderId, [], pageAccessToken, lastImage);
+          lastImageByUser.delete(senderId);
+        } catch (error) {
+          await sendMessage(senderId, { text: 'An error occurred while processing the image.' }, pageAccessToken);
+        }
+      } else {
+        await sendMessage(senderId, {
+          text: 'Please send an image first, then type "removebg" to remove its background.'
+        }, pageAccessToken);
+      }
+      return;
+    }
 
     if (messageText === 'imgur') {
       const lastImage = lastImageByUser.get(senderId);
