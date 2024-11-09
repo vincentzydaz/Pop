@@ -88,7 +88,7 @@ if (messageText === 'reminiv2') {
     // Handling "gemini" command
     if (messageText.startsWith('gemini')) {
       const lastImage = lastImageByUser.get(senderId);
-      const args = messageText.split(/\/).slice(1);
+      const args = messageText.split(/\+/).slice(1);
 
       try {
         await commands.get('gemini').execute(senderId, args, pageAccessToken, event, lastImage);
@@ -127,3 +127,4 @@ if (messageText === 'imgur') {
     } else {
       const words = messageText.split(' ');
       commandName = words.shift().toLowerCase();
+      args = words;
