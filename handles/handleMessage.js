@@ -1,24 +1,24 @@
 const fs = require('fs');
 const path = require('path');
-const axios = require('axios');
+const axios = require('axios'); // Added axios for HTTP requests
 const { sendMessage } = require('./sendMessage');
 
 const commands = new Map();
-const lastImageByUser = new Map();
-const lastVideoByUser = new Map();
+const lastImageByUser = new Map(); // Store the last image sent by each user
+const lastVideoByUser = new Map(); // Store the last video sent by each user
+const prefix = '-';
 
 const commandFiles = fs.readdirSync(path.join(__dirname, '../commands')).filter(file => file.endsWith('.js'));
 for (const file of commandFiles) {
   const command = require(`../commands/${file}`);
-  if (command.name && typeof command.name === 'string') {
-    commands.set(command.name.toLowerCase(), command);
-  }
+  commands.set(command.name.toLowerCase(), command);
 }
 
-const tiktokRegex = /https?:\/\/(www\.)?tiktok\.com\/[^\s/?#]+\/?|https?:\/\/vt\.tiktok\.com\/[^\s/?#]+\/?/;
-
 async function handleMessage(event, pageAccessToken) {
-  if (!event || !event.sender || !event.sender.id) return;
+  if (!event || !event.sender || !event.sender.id) {
+    console.error('Invalid event object');
+    return;
+  }
 
   const senderId = event.sender.id;
 
@@ -37,38 +37,9 @@ async function handleMessage(event, pageAccessToken) {
   if (event.message && event.message.text) {
     const messageText = event.message.text.trim().toLowerCase();
 
-    // TikTok URL detection and downloading
-    if (tiktokRegex.test(messageText)) {
-      await sendMessage(senderId, { text: 'Downloading your TikTok video, please wait...' }, pageAccessToken);
-      try {
-        const response = await axios.post(`https://www.tikwm.com/api/`, { url: messageText });
-        if (response.data && response.data.data && response.data.data.play) {
-          const shotiUrl = response.data.data.play;
-
-          await sendMessage(senderId, {
-            attachment: {
-              type: 'video',
-              payload: {
-                url: shotiUrl,
-                is_reusable: true
-              }
-            }
-          }, pageAccessToken);
-        } else {
-          console.error("Unexpected response structure:", response.data);
-          await sendMessage(senderId, { text: 'Failed to retrieve TikTok video URL. Please check the URL and try again.' }, pageAccessToken);
-        }
-      } catch (error) {
-        console.error("Error fetching TikTok video:", error.response ? error.response.data : error.message);
-        await sendMessage(senderId, { text: 'An error occurred while downloading the TikTok video. Please try again later.' }, pageAccessToken);
-      }
-      return;
-    }
-
-    // Command handling
+    // Handling "removebg" command
     if (messageText === 'removebg') {
       const lastImage = lastImageByUser.get(senderId);
-
       if (lastImage) {
         try {
           await commands.get('removebg').execute(senderId, [], pageAccessToken, lastImage);
@@ -77,35 +48,47 @@ async function handleMessage(event, pageAccessToken) {
           await sendMessage(senderId, { text: 'An error occurred while processing the image.' }, pageAccessToken);
         }
       } else {
-        await sendMessage(senderId, {
-          text: 'Please send an image first, then type "removebg" to remove its background.'
-        }, pageAccessToken);
+        await sendMessage(senderId, { text: '❌ 𝗣𝗹𝗲𝗮𝘀𝗲 𝘀𝗲𝗻𝗱 𝗮𝗻 𝗶𝗺𝗮𝗴𝗲 𝗳𝗶𝗿𝘀𝘁, 𝘁𝗵𝗲𝗻 𝘁𝘆𝗽𝗲 "𝗿𝗲𝗺𝗼𝘃𝗲𝗯𝗴" 𝘁𝗼 𝗿𝗲𝗺𝗼𝘃𝗲 𝗶𝘁𝘀 𝗯𝗮𝗰𝗸𝗴𝗿𝗼𝘂𝗻𝗱.' }, pageAccessToken);
       }
       return;
     }
 
-    if (messageText === 'imgur') {
-      const lastImage = lastImageByUser.get(senderId);
-      const lastVideo = lastVideoByUser.get(senderId);
-      const mediaToUpload = lastImage || lastVideo;
-
-      if (mediaToUpload) {
-        try {
-          await commands.get('imgur').execute(senderId, [], pageAccessToken, mediaToUpload);
-          lastImageByUser.delete(senderId);
-          lastVideoByUser.delete(senderId);
-        } catch (error) {
-          await sendMessage(senderId, { text: 'An error occurred while uploading the media to Imgur.' }, pageAccessToken);
-        }
-      } else {
-        await sendMessage(senderId, { text: 'Please send an image or video first, then type "imgur" to upload.' }, pageAccessToken);
-      }
-      return;
+    // Handling "remini" command
+if (messageText === 'remini') {
+  const lastImage = lastImageByUser.get(senderId);
+  if (lastImage) {
+    try {
+      await commands.get('remini').execute(senderId, [], pageAccessToken, lastImage);
+      lastImageByUser.delete(senderId);
+    } catch (error) {
+      await sendMessage(senderId, { text: 'An error occurred while processing the image.' }, pageAccessToken);
     }
+  } else {
+    await sendMessage(senderId, { text: '❌ 𝗣𝗹𝗲𝗮𝘀𝗲 𝘀𝗲𝗻𝗱 𝗮𝗻 𝗶𝗺𝗮𝗴𝗲 𝗳𝗶𝗿𝘀𝘁, 𝘁𝗵𝗲𝗻 𝘁𝘆𝗽𝗲 "𝗿𝗲𝗺𝗶𝗻𝗶" 𝘁𝗼 𝗲𝗻𝗵𝗮𝗻𝗰𝗲 𝗶𝘁.' }, pageAccessToken);
+  }
+  return;
+}
+// Handling "reminiv2" command
+if (messageText === 'reminiv2') {
+  const lastImage = lastImageByUser.get(senderId);
+  if (lastImage) {
+    try {
+      await commands.get('reminiv2').execute(senderId, [], pageAccessToken, lastImage);
+      lastImageByUser.delete(senderId);
+    } catch (error) {
+      await sendMessage(senderId, { text: '⚠️ An error occurred while enhancing the image. Please try again later.' }, pageAccessToken);
+    }
+  } else {
+    await sendMessage(senderId, { text: '❌ 𝗣𝗹𝗲𝗮𝘀𝗲 𝘀𝗲𝗻𝗱 𝗮𝗻 𝗶𝗺𝗮𝗴𝗲 𝗳𝗶𝗿𝘀𝘁, 𝘁𝗵𝗲𝗻 𝘁𝘆𝗽𝗲 "𝗿𝗲𝗺𝗶𝗻𝗶" 𝘁𝗼 𝗲𝗻𝗵𝗮𝗻𝗰𝗲 𝗶𝘁.' }, pageAccessToken);
+  }
+  return;
+}
 
+
+    // Handling "gemini" command
     if (messageText.startsWith('gemini')) {
       const lastImage = lastImageByUser.get(senderId);
-      const args = messageText.split(/\s+/).slice(1);
+      const args = messageText.split(/\/).slice(1);
 
       try {
         await commands.get('gemini').execute(senderId, args, pageAccessToken, event, lastImage);
@@ -116,38 +99,31 @@ async function handleMessage(event, pageAccessToken) {
       return;
     }
 
-    // General command handling
+if (messageText === 'imgur') {
+      const lastImage = lastImageByUser.get(senderId);
+      const lastVideo = lastVideoByUser.get(senderId);
+      const mediaToUpload = lastImage || lastVideo;
+
+      if (mediaToUpload) {
+        try {
+          await commands.get('imgur').execute(senderId, [], pageAccessToken, mediaToUpload);
+          lastImageByUser.delete(senderId);
+          lastVideoByUser.delete(senderId);
+        } catch (error) {
+          await sendMessage(senderId, { text: '🫵😼' }, pageAccessToken);
+        }
+      } else {
+        await sendMessage(senderId, { text: '❌ 𝗣𝗹𝗲𝗮𝘀𝗲 𝘀𝗲𝗻𝗱 𝗮𝗻 𝗶𝗺𝗮𝗴𝗲 𝗼𝗿 𝘃𝗶𝗱𝗲𝗼 𝗳𝗶𝗿𝘀𝘁, 𝘁𝗵𝗲𝗻 𝘁𝘆𝗽𝗲 "𝗶𝗺𝗴𝘂𝗿" 𝘁𝗼 𝘂𝗽𝗹𝗼𝗮𝗱 𝗰𝗼𝗻𝘃𝗲𝗿𝘁 𝗹𝗶𝗻𝗸' }, pageAccessToken);
+      }
+      return;
+    }
+
+    // Other command processing logic...
     let commandName, args;
-    if (messageText.startsWith('-')) {
-      const argsArray = messageText.slice(1).trim().split(/\s+/);
+    if (messageText.startsWith(prefix)) {
+      const argsArray = messageText.slice(prefix.length).split(' ');
       commandName = argsArray.shift().toLowerCase();
       args = argsArray;
     } else {
-      const words = messageText.trim().split(/\s+/);
+      const words = messageText.split(' ');
       commandName = words.shift().toLowerCase();
-      args = words;
-    }
-
-    if (commands.has(commandName)) {
-      const command = commands.get(commandName);
-      try {
-        await command.execute(senderId, args, pageAccessToken, event);
-      } catch (error) {
-        sendMessage(senderId, { text: `There was an error executing the command "${commandName}". Please try again later.` }, pageAccessToken);
-      }
-    } else {
-      sendMessage(senderId, {
-        text: `Unknown command: "${commandName}". Type "help" for a list of available commands.`,
-        quick_replies: [
-          {
-            content_type: "text",
-            title: "Help",
-            payload: "HELP_PAYLOAD"
-          }
-        ]
-      }, pageAccessToken);
-    }
-  }
-}
-
-module.exports = { handleMessage };
